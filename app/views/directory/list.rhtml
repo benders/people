@@ -1,0 +1,30 @@
+<% @entries.each do |person| %>
+<div class="person" id="<%=person.uid%>">
+  <div class="content">
+    <div class="photo">
+      <img src="images/people/<%=person.uid%>.jpg" onerror="this.src='images/people/gay.jpg'"/>
+      <div class="caption"><%=person.uid%></div>
+    </div>
+    <div class="blather">
+      <div class="title">
+        <span class="name"><%=person.uid%></span> aka <span class="aliases"><%=person.cn[1] || person.cn[0]%></span>
+      </div>
+      <div class="note"><%=person.note%></div>
+    </div>
+    <div class="clear"></div>
+  </div>
+</div>
+
+<% end %>
+
+<div class="nav" id="pagination"> 
+  <%= link_to('&lt;&lt; previous', {:params => params.merge('page' => @pages.current.previous)}) if @pages.current.previous %>
+  <%= ' | ' if @pages.current.previous and @pages.current.next %>
+  <%= link_to('next &gt;&gt;', {:params => params.merge('page' => @pages.current.next)}) if @pages.current.next %>
+</div>
+
+<script>
+<% @entries.each do |person| %>
+Rico.Corner.round('<%=person.uid%>');
+<% end %>
+</script>

@@ -1,0 +1,13 @@
+# all the keys have to be symbols or ActiveLDAP::Base.connect() gets mad
+
+development:
+  !ruby/symbol host: ldap.slackworks.com
+  !ruby/symbol base: dc=slackworks,dc=com 
+  !ruby/symbol try_sasl: true
+  !ruby/symbol allow_anonymous: true
+  
+test:
+  !ruby/symbol host: ldap.slackworks.com
+  !ruby/symbol base: dc=slackworks,dc=com
+  !ruby/symbol try_sasl: true
+  !ruby/symbol allow_anonymous: true

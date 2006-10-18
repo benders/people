@@ -1,0 +1,31 @@
+BODY { background-color: #661111; }
+
+div.person, div.nav { background-color: #FFF7D8; 
+                      margin: 2em; }
+             
+div.nav { text-align: center; }
+
+div.content { padding: 1em; }
+
+div.clear { clear: both; }
+
+.photo { float: left; 
+         width: 200px;
+         text-align: center;
+         margin-right: 10px;
+         clear: left; }
+         
+.caption { font-size: small; }
+
+.blather { margin-left: 210px; }
+         
+.name { font-weight: bold;
+        font-size: xx-large; }
+        
+.title { border-bottom: 2px black;
+         margin-bottom: 1ex; }
+         
+.note { white-space: pre; }
+         
+
+
