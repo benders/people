@@ -2,7 +2,7 @@
 <div class="person" id="<%=person.uid%>">
   <div class="content">
     <div class="photo">
-      <img src="images/people/<%=person.uid%>.jpg" onerror="this.src='images/people/gay.jpg'"/>
+      <img src="<%= image_path('people/' + person.uid[0] + '.jpg') %>" onerror="this.src='<%= image_path('people/gay.jpg') %>'"/>
       <div class="caption"><%=person.uid%></div>
     </div>
     <div class="blather">
