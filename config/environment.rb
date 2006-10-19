@@ -52,6 +52,7 @@ end
 
 # Include your application configuration below
 require 'activeldap'
-# why doesnt this work?
-#ActiveLDAP::Base.connect(YAML::load(IO.read('config/ldap.yml'))[ENV['RAILS_ENV']])
-ActiveLDAP::Base.connect(YAML::load(IO.read('config/ldap.yml'))['development'])
+if (ENV['RAILS_ENV'])
+  LDAP_CONFIG = YAML::load(IO.read("#{RAILS_ROOT}/config/ldap.yml"))[ENV['RAILS_ENV']]
+  ActiveLDAP::Base.connect(LDAP_CONFIG)
+end

@@ -1,4 +1,5 @@
 class DirectoryController < ApplicationController
+  before_filter :authenticate, :only => [ :show ]
 
   def index
     list
@@ -13,7 +14,11 @@ class DirectoryController < ApplicationController
       start = (@params[:page].to_i - 1) * page_size
     end
     @pages = Paginator.new(self, shown.size, page_size, @params[:page].to_i)
-    @entries = shown[start .. start + page_size].collect { |person| Person.new(person) }
+    @entries = shown[start .. start + page_size - 1].collect { |person| Person.new(person) }
+  end
+
+  def show
+    @person = Person.find(:attribute => 'uid', :value => @params[:id], :objects => true)
   end
 
 end

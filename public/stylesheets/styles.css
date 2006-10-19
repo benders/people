@@ -1,7 +1,16 @@
-BODY { background-color: #661111; }
+body { background-color: #661111; }
 
-div.person, div.nav { background-color: #FFF7D8; 
-                      margin: 2em; }
+img { border: none; }
+
+a { color: black; 
+    text-decoration: none; }
+
+.flash { color: white; 
+         text-align: center;
+         font-weight: bold; }
+
+div.person, div.nav, div.frame { background-color: #FFF7D8; 
+                                 margin: 2em; }
              
 div.nav { text-align: center; }
 
@@ -14,13 +23,15 @@ div.clear { clear: both; }
          text-align: center;
          margin-right: 10px;
          clear: left; }
-         
+     
 .caption { font-size: small; }
 
 .blather { margin-left: 210px; }
          
-.name { font-weight: bold;
-        font-size: xx-large; }
+.name, .login { font-weight: bold;
+                font-size: xx-large; }
+                
+.login { margin-bottom: 1ex; }
         
 .title { border-bottom: 2px black;
          margin-bottom: 1ex; }

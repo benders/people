@@ -3,11 +3,14 @@
 development:
   !ruby/symbol host: ldap.slackworks.com
   !ruby/symbol base: dc=slackworks,dc=com 
-  !ruby/symbol try_sasl: true
   !ruby/symbol allow_anonymous: true
   
 test:
   !ruby/symbol host: ldap.slackworks.com
   !ruby/symbol base: dc=slackworks,dc=com
-  !ruby/symbol try_sasl: true
+  !ruby/symbol allow_anonymous: true
+
+production:
+  !ruby/symbol host: localhost
+  !ruby/symbol base: dc=slackworks,dc=com 
   !ruby/symbol allow_anonymous: true

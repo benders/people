@@ -1,6 +1,20 @@
 class Person < ActiveLDAP::Base
   ldap_mapping :dnattr => 'uid', :prefix => 'ou=People', :classes => ['posixAccount']
 
+  def Person.login(username, password)
+    begin
+      # reconnect as a particular user
+      ActiveLDAP::Base.close
+      ActiveLDAP::Base.connection = LDAP::Conn.open(LDAP_CONFIG[:host])
+      ActiveLDAP::Base.connection.bind("uid=#{username},ou=People,dc=slackworks,dc=com", password)
+      return true
+    rescue LDAP::ResultError
+      return false
+    end
+  end
+
+  ### WARNING: monkey-patching of ActiveLDAP:Base below ###
+
   # everything except jpegphoto, userpassword
   # probly want to pare this down to just what we show on the page
   # but this is ok for now

@@ -2,13 +2,21 @@
 <div class="person" id="<%=person.uid%>">
   <div class="content">
     <div class="photo">
+      <a href="<%= url_for(:action => 'show', :id => person.uid[0]) %>">
       <img src="<%= image_path('people/' + person.uid[0] + '.jpg') %>" onerror="this.src='<%= image_path('people/gay.jpg') %>'"/>
+      </a>
       <div class="caption"><%=person.uid%></div>
     </div>
     <div class="blather">
       <div class="title">
-        <span class="name"><%=person.uid%></span> aka <span class="aliases"><%=person.cn[1] || person.cn[0]%></span>
+        <span class="name">
+          <a href="<%= url_for(:action => 'show', :id => person.uid[0]) %>">
+          <%=person.uid%>
+          </a>
+        </span> aka <span class="aliases"><%=person.cn[1] || person.cn[0]%></span>
+        <div><span style="font-weight: bold">Base of Ops:</span> <%=person.roomnumber%></div>
       </div>
+      
       <div class="note"><%=person.note%></div>
     </div>
     <div class="clear"></div>

@@ -1,0 +1,18 @@
+<form action="<%= url_for(:action => 'login') %>" method="post">
+<div class="frame" id="frame">
+  <div class="content">
+    <div class="photo"><img src="<%= image_path('redgear.png') %>"/></div>
+    <div class="blather" style="margin-left: 300px;">
+      <div class="login">Login</div>
+      <div><span>Username: </span><input type="text" name="username"/></div>
+      <div><span>Password: </span><input type="password" name="password"/></div>
+      <div><input type="submit" value="login"/></div> 
+    </div>
+    <div class="clear"></div>
+  </div>
+</div>
+</form>
+
+<script>
+Rico.Corner.round('frame');
+</script>
