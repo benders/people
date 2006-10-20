@@ -13,6 +13,14 @@ class Person < ActiveLDAP::Base
     end
   end
 
+  def get_note
+    if (self.attributes.include?('note'))
+      self.note
+    else
+      ''
+    end
+  end
+
   ### WARNING: monkey-patching of ActiveLDAP:Base below ###
 
   # everything except jpegphoto, userpassword

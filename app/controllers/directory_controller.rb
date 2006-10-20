@@ -7,7 +7,8 @@ class DirectoryController < ApplicationController
   end
 
   def list
-    shown = Person.find_all(:attribute => "show", :value => ["TRUE"], :objects => false)
+    #shown = Person.find_all(:attribute => "show", :value => ["TRUE"], :objects => false)
+    shown = Group.new('Slackworks People').members
     page_size = 20
     start = 0
     if (@params[:page]) 
