@@ -13,9 +13,9 @@ class Person < ActiveLDAP::Base
     end
   end
 
-  def get_note
+  def note
     if (self.attributes.include?('note'))
-      self.note
+      attribute_method('note')
     else
       ''
     end
@@ -201,7 +201,6 @@ class Person < ActiveLDAP::Base
         # Update attr_method with appropriate
         define_attribute_methods(attr)
     end
-    define_attribute_methods('modifytimestamp')
   end
 
 end
