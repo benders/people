@@ -33,8 +33,7 @@ div.clear { clear: both; }
                 
 .login { margin-bottom: 1ex; }
         
-.title { border-bottom: 2px black;
-         margin-bottom: 1ex; }
+.title { margin-bottom: 1ex; }
          
 .note { white-space: pre; }
          

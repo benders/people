@@ -7,15 +7,19 @@ class DirectoryController < ApplicationController
   end
 
   def list
-    #shown = Person.find_all(:attribute => "show", :value => ["TRUE"], :objects => false)
-    shown = Group.new('Slackworks People').members
-    page_size = 20
+    people = Group.new('Slackworks People').members.collect do |name| 
+      Person.find(:attribute => 'uid', :value => name, :objects => true)
+    end
+    people.sort! { |a,b| b.modifytimestamp <=> a.modifytimestamp }
+    
+    page_size = 10
     start = 0
     if (@params[:page]) 
       start = (@params[:page].to_i - 1) * page_size
     end
-    @pages = Paginator.new(self, shown.size, page_size, @params[:page].to_i)
-    @entries = shown[start .. start + page_size - 1].collect { |person| Person.new(person) }
+    
+    @pages = Paginator.new(self, people.size, page_size, @params[:page].to_i)
+    @entries = people[start .. start + page_size - 1]
   end
 
   def show

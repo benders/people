@@ -1,6 +1,9 @@
 <div class="frame" id="frame">
   <div class="content">
-    <div style="text-align: center"><img src="<%= image_path('people/' + @person.uid[0] + '.jpg') %>" onerror="this.src='<%= image_path('people/gay.jpg') %>'"/></div>
+    <div style="text-align: center">
+      <div class="name title"><%=@person.uid[0]%></div>
+      <img src="<%= image_path('people/' + @person.uid[0] + '.jpg') %>" onerror="this.src='<%= image_path('people/gay.jpg') %>'"/>
+    </div>
     <% @person.attributes.each do |attr| %>
     <div>
       <% if (@person.send(attr).to_s != '') %>
