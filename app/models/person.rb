@@ -1,6 +1,18 @@
 class Person < ActiveLDAP::Base
   ldap_mapping :dnattr => 'uid', :prefix => 'ou=People', :classes => ['posixAccount']
 
+  def modifytimestamp
+    @ldap_data['modifyTimestamp']
+  end
+
+  def note
+    if (self.attributes.include?('note'))
+      attribute_method('note')
+    else
+      ''
+    end
+  end
+
   def Person.login(username, password)
     begin
       # reconnect as a particular user
@@ -10,14 +22,6 @@ class Person < ActiveLDAP::Base
       return true
     rescue LDAP::ResultError
       return false
-    end
-  end
-
-  def note
-    if (self.attributes.include?('note'))
-      attribute_method('note')
-    else
-      ''
     end
   end
 
@@ -159,48 +163,4 @@ class Person < ActiveLDAP::Base
     return matches
   end
   #private_class_method :find_all
-  
-  # apply_objectclass
-  #
-  # objectClass= special case for updating appropriately
-  # This updates the objectClass entry in @data. It also
-  # updating all required and allowed attributes while
-  # removing defined attributes that are no longer valid
-  # given the new objectclasses.
-  def apply_objectclass(val)
-    #@@logger.debug("stub: objectClass=(#{val.inspect}) called")
-    new_oc = val
-    new_oc = [val] if new_oc.class != Array
-    if defined?(@last_oc).nil?
-      @last_oc = false
-    end
-    return new_oc if @last_oc == new_oc
-
-    # Store for caching purposes
-    @last_oc = new_oc.dup
-
-    # Set the actual objectClass data
-    define_attribute_methods('objectClass')
-    @data['objectClass'] = new_oc.uniq
-
-    # Build |data| from schema
-    # clear attr_method mapping first
-    @attr_methods = {}
-    @must = []
-    @may = []
-    new_oc.each do |objc|
-      # get all attributes for the class
-      attributes = Person.schema.class_attributes(objc.to_s)
-      @must += attributes[:must]
-      @may += attributes[:may]
-    end
-    @may += ['modifytimestamp','modifiersname','createtimestamp','creatorsname']
-    @must.uniq!
-    @may.uniq!
-    (@must+@may).each do |attr|
-        # Update attr_method with appropriate
-        define_attribute_methods(attr)
-    end
-  end
-
 end
