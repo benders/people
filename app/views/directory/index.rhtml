@@ -3,7 +3,7 @@
   <div class="content">
     <div class="photo">
       <a href="<%= url_for(:action => 'show', :id => person.uid[0]) %>">
-      <img src="<%= image_path('people/' + person.uid[0] + '.jpg') %>" onerror="this.src='<%= image_path('people/gay.jpg') %>'"/>
+      <%= person_image(person.uid[0]) %>
       </a>
       <div class="caption"><%=person.uid%></div>
     </div>

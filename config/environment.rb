@@ -56,3 +56,5 @@ if (ENV['RAILS_ENV'])
   LDAP_CONFIG = YAML::load(IO.read("#{RAILS_ROOT}/config/ldap.yml"))[ENV['RAILS_ENV']]
   ActiveLDAP::Base.connect(LDAP_CONFIG)
 end
+
+ActiveLDAP::Base.send(:include, SWX::ActsAsRenderable)

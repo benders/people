@@ -2,11 +2,6 @@ class DirectoryController < ApplicationController
   before_filter :authenticate, :only => [ :show ]
 
   def index
-    list
-    render :action => 'list'
-  end
-
-  def list
     people = Group.new('Slackworks People').members.collect do |name| 
       Person.find(:attribute => 'uid', :value => name, :objects => true)
     end
@@ -20,10 +15,15 @@ class DirectoryController < ApplicationController
     
     @pages = Paginator.new(self, people.size, page_size, @params[:page].to_i)
     @entries = people[start .. start + page_size - 1]
+    
+    render :layout => 'directory/list'
   end
 
   def show
     @person = Person.find(:attribute => 'uid', :value => @params[:id], :objects => true)
+    if not [["TRUE"], ["FALSE"], [""]].include?(@person.show)
+      render_model :object => @person
+    end
   end
 
 end

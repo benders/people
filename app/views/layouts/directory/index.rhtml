@@ -9,18 +9,7 @@
       
    </HEAD>
    <BODY>
-
-<p class="flash"><%= flash[:notice] %></p>
-<div class="frame" id="frame">
-  <div class="content">
-  <%= @content_for_layout %>
-  </div>
-  <div class="clear"></div>
-</div>
-
-<script>
-Rico.Corner.round('frame');
-</script>
-
+      <p class="flash"><%= flash[:notice] %></p>
+      <%= @content_for_layout %>
    </BODY>
 </HTML>

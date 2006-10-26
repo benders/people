@@ -1,24 +1,38 @@
 class Person < ActiveLDAP::Base
   ldap_mapping :dnattr => 'uid', :prefix => 'ou=People', :classes => ['posixAccount']
+  acts_as_renderable :method => :show_view, :controller => 'directory', :action => 'show'
 
   def modifytimestamp
     @ldap_data['modifyTimestamp']
   end
 
+  # can we do this with method_missing without messing up the parent?
   def note
     if (self.attributes.include?('note'))
       attribute_method('note')
     else
-      ''
+      ['']
+    end
+  end
+  
+  def show_view
+    show[0]
+  end
+  
+  def show
+    if (self.attributes.include?('show'))
+      attribute_method('show')
+    else
+      ['']
     end
   end
 
   def Person.login(username, password)
     begin
-      # reconnect as a particular user
-      ActiveLDAP::Base.close
-      ActiveLDAP::Base.connection = LDAP::Conn.open(LDAP_CONFIG[:host])
-      ActiveLDAP::Base.connection.bind("uid=#{username},ou=People,dc=slackworks,dc=com", password)
+      conn = LDAP::Conn.open(LDAP_CONFIG[:host])
+      # need to get rid of the prefix
+      conn.bind("uid=#{username},ou=People,#{LDAP_CONFIG[:base]}", password)
+      conn.unbind
       return true
     rescue LDAP::ResultError
       return false
