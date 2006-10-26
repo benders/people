@@ -16,7 +16,7 @@ class DirectoryController < ApplicationController
     @pages = Paginator.new(self, people.size, page_size, @params[:page].to_i)
     @entries = people[start .. start + page_size - 1]
     
-    render :layout => 'directory/list'
+    render :layout => 'directory/index'
   end
 
   def show
