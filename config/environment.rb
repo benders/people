@@ -57,4 +57,5 @@ if (ENV['RAILS_ENV'])
   ActiveLDAP::Base.connect(LDAP_CONFIG)
 end
 
+# have to apply ActsAsRenderable to ActiveLDAP (it applies itself to ActiveRecord automatically
 ActiveLDAP::Base.send(:include, SWX::ActsAsRenderable)

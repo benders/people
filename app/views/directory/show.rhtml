@@ -3,10 +3,14 @@
   <%= person_image(@person.uid[0]) %>
 </div>
 
-<% @person.attributes.each do |attr| %>
+<% #@person.attributes.keys.delete_if {|a| a == nil}.each do |attr| %>
+<% @attrs.each do |attr| %>
 <div>
   <% if (@person.send(attr).to_s != '') %>
   <span style="font-weight: bold;"><%= attr %></span>: <%= @person.send(attr) %> 
   <% end %>
 </div>
 <% end %>
+<p>
+<a href="<%= url_for :action => 'edit', :id => 'gnarg' %>">EDIT</a>
+</p>

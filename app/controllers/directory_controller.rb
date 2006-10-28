@@ -21,9 +21,28 @@ class DirectoryController < ApplicationController
 
   def show
     @person = Person.find(:attribute => 'uid', :value => @params[:id], :objects => true)
-    if not [["TRUE"], ["FALSE"], [""]].include?(@person.show)
-      render_model :object => @person
-    end
+    @attrs = [:cn, :roomNumber, :mail, :note, :jabber, :aim, :icq, 
+              :homePostalAddress, :labeledURI, :mtime]
+              
+    # for acts_as_renderable
+    #if not [["TRUE"], ["FALSE"], [""]].include?(@person.show)
+    #  render_model :object => @person
+    #end
+  end
+  
+  def edit
+    @person = Person.find(:attribute => 'uid', :value => @params[:id], :objects => true)
+  end
+  
+  def update
+    @person = Person.new(@params[:id])
+    
+    # XXX: how do we get the current user's instance_connection?
+    #@person.instance_connection = ??
+    #
+    # update attributes
+    # write
+    # render show or failure
   end
 
 end
