@@ -43,9 +43,10 @@ class Person < ActiveLDAP::Base
 
   def login(password)
     begin
-      @instance_connection = LDAP::Conn.open(LDAP_CONFIG[:host])
+      conn = LDAP::Conn.open(LDAP_CONFIG[:host])
       # need to get rid of the prefix
-      @instance_connection.bind("uid=#{self.uid[0]},ou=People,#{LDAP_CONFIG[:base]}", password)
+      conn.bind("uid=#{self.uid[0]},ou=People,#{LDAP_CONFIG[:base]}", password)
+      SeriesOfTubes.instance.set_connection(self.uid[0], conn)
       return true
     rescue LDAP::ResultError
       return false
@@ -53,6 +54,8 @@ class Person < ActiveLDAP::Base
   end
 
   ### WARNING: monkey-patching of ActiveLDAP::Base below ###
+  # both methods hacked to allow selection of attributes to retrieve
+  # including the possibility of "extended" attributes
 
   # all possible except jpegphoto, userpassword
   # probly want to pare this down to just what we show on the page
@@ -189,182 +192,182 @@ class Person < ActiveLDAP::Base
     return matches
   end
   
-    # save
-    #
-    # Save and validate this object into LDAP
-    # either adding or replacing attributes
-    # TODO: Relative DN support
-    def save
-      @data = @data.delete_if { |k,v| k == nil }
+  ## modded to allow individual write permissions
+  
+  # save
+  #
+  # Save and validate this object into LDAP
+  # either adding or replacing attributes
+  # TODO: Relative DN support
+  def save
+    @data = @data.delete_if { |k,v| k == nil }
     
-      @@logger.debug("stub: save called")
-      # Validate against the objectClass requirements
-      validate
+    @@logger.debug("stub: save called")
+    # Validate against the objectClass requirements
+    validate
 
-      # Put all changes into one change entry to ensure
-      # automatic rollback upon failure.
-      entry = []
+    # Put all changes into one change entry to ensure
+    # automatic rollback upon failure.
+    entry = []
 
+    # Expand subtypes to real ldap_data entries
+    # We can't reuse @ldap_data because an exception would leave
+    # an object in an unknown state
+    @@logger.debug("#save: dup'ing @ldap_data")
+    ldap_data = Marshal.load(Marshal.dump(@ldap_data))
+    @@logger.debug("#save: dup finished @ldap_data")
+    @@logger.debug("#save: expanding subtypes in @ldap_data")
+    ldap_data.keys.each do |key|
+      ldap_data[key].each do |value|
+        if value.class == Hash
+          suffix, real_value = extract_subtypes(value)
+          if ldap_data.has_key? key + suffix
+            ldap_data[key + suffix].push(real_value)
+          else
+            ldap_data[key + suffix] = real_value
+          end
+          ldap_data[key].delete(value)
+        end
+      end
+    end
+    @@logger.debug('#save: subtypes expanded for @ldap_data')
 
-      # Expand subtypes to real ldap_data entries
-      # We can't reuse @ldap_data because an exception would leave
-      # an object in an unknown state
-      @@logger.debug("#save: dup'ing @ldap_data")
-      ldap_data = Marshal.load(Marshal.dump(@ldap_data))
-      @@logger.debug("#save: dup finished @ldap_data")
-      @@logger.debug("#save: expanding subtypes in @ldap_data")
-      ldap_data.keys.each do |key|
-        ldap_data[key].each do |value|
-          if value.class == Hash
-            suffix, real_value = extract_subtypes(value)
-            if ldap_data.has_key? key + suffix
-              ldap_data[key + suffix].push(real_value)
-            else
-              ldap_data[key + suffix] = real_value
-            end
-            ldap_data[key].delete(value)
+    # Expand subtypes to real data entries, but leave @data alone
+    @@logger.debug('#save: duping @data')
+    data = Marshal.load(Marshal.dump(@data))
+    @@logger.debug('#save: finished duping @data')
+
+    @@logger.debug('#save: removing disallowed attributes from @data')
+    bad_attrs = @data.keys - (@must+@may)
+    bad_attrs.each do |removeme|
+      data.delete(removeme) 
+    end
+    @@logger.debug('#save: finished removing disallowed attributes from @data')
+
+    @@logger.debug('#save: expanding subtypes for @data')
+    data.keys.each do |key|
+      data[key].each do |value|
+        if value.class == Hash
+          suffix, real_value = extract_subtypes(value)
+          if data.has_key? key + suffix
+            data[key + suffix].push(real_value)
+          else
+            data[key + suffix] = real_value
+          end
+          data[key].delete(value)
+        end
+      end
+    end
+    @@logger.debug('#save: subtypes expanded for @data')
+
+    if @exists
+      # Cycle through all attrs to determine action
+      action = {}
+
+      replaceable = []
+      # Now that all the subtypes will be treated as unique attributes
+      # we can see what's changed and add anything that is brand-spankin'
+      # new.
+      @@logger.debug('#save: traversing ldap_data determining replaces and deletes')
+      ldap_data.each do |pair|
+        suffix = ''
+        binary = 0
+
+        name, *suffix_a = pair[0].split(/;/)
+        suffix = ';'+ suffix_a.join(';') if suffix_a.size > 0
+        name = @attr_methods[name]
+        name = pair[0].split(/;/)[0] if name.nil? # for objectClass, or removed vals
+        value = data[name+suffix]
+        # If it doesn't exist, don't freak out.
+        value = [] if value.nil?
+
+        # Detect subtypes and account for them
+        binary = LDAP::LDAP_MOD_BVALUES if Person.schema.binary? name
+
+        replaceable.push(name+suffix)
+        if pair[1] != value
+          # Create mod entries
+          if not value.empty?
+            # Ditched delete then replace because attribs with no equality match rules
+            # will fails
+            @@logger.debug("#save: pdating attribute of existing entry:  #{name+suffix}: #{value.inspect}")
+            entry.push(LDAP.mod(LDAP::LDAP_MOD_REPLACE|binary, name + suffix, value))
+          else
+            # Since some types do not have equality matching rules, delete doesn't work
+            # Replacing with nothing is equivalent.
+            @@logger.debug("#save: removing attribute from existing entry:  #{name+suffix}")
+            entry.push(LDAP.mod(LDAP::LDAP_MOD_REPLACE|binary, name + suffix, []))
           end
         end
       end
-      @@logger.debug('#save: subtypes expanded for @ldap_data')
+      @@logger.debug('#save: finished traversing ldap_data')
+      @@logger.debug('#save: traversing data determining adds')
+      data.each do |pair|
+        suffix = ''
+        binary = 0
 
-      # Expand subtypes to real data entries, but leave @data alone
-      @@logger.debug('#save: duping @data')
-      data = Marshal.load(Marshal.dump(@data))
-      @@logger.debug('#save: finished duping @data')
+        name, *suffix_a = pair[0].split(/;/)
+        suffix = ';' + suffix_a.join(';') if suffix_a.size > 0
+        name = @attr_methods[name]
+        name = pair[0].split(/;/)[0] if name.nil? # for obj class or removed vals
+        value = pair[1]
+        # Make sure to change this to an Array if there was mistake earlier.
+        value = [] if value.nil?
 
-      @@logger.debug('#save: removing disallowed attributes from @data')
-      bad_attrs = @data.keys - (@must+@may)
-      bad_attrs.each do |removeme|
-        data.delete(removeme) 
-      end
-      @@logger.debug('#save: finished removing disallowed attributes from @data')
-
-
-      @@logger.debug('#save: expanding subtypes for @data')
-      data.keys.each do |key|
-        data[key].each do |value|
-          if value.class == Hash
-            suffix, real_value = extract_subtypes(value)
-            if data.has_key? key + suffix
-              data[key + suffix].push(real_value)
-            else
-              data[key + suffix] = real_value
-            end
-            data[key].delete(value)
-          end
-        end
-      end
-      @@logger.debug('#save: subtypes expanded for @data')
-
-      if @exists
-        # Cycle through all attrs to determine action
-        action = {}
-
-        replaceable = []
-        # Now that all the subtypes will be treated as unique attributes
-        # we can see what's changed and add anything that is brand-spankin'
-        # new.
-        @@logger.debug('#save: traversing ldap_data determining replaces and deletes')
-        ldap_data.each do |pair|
-          suffix = ''
-          binary = 0
-
-          name, *suffix_a = pair[0].split(/;/)
-          suffix = ';'+ suffix_a.join(';') if suffix_a.size > 0
-          name = @attr_methods[name]
-          name = pair[0].split(/;/)[0] if name.nil? # for objectClass, or removed vals
-          value = data[name+suffix]
-          # If it doesn't exist, don't freak out.
-          value = [] if value.nil?
-
+        if not replaceable.member? name+suffix
           # Detect subtypes and account for them
           binary = LDAP::LDAP_MOD_BVALUES if Person.schema.binary? name
-
-          replaceable.push(name+suffix)
-          if pair[1] != value
-            # Create mod entries
-            if not value.empty?
-              # Ditched delete then replace because attribs with no equality match rules
-              # will fails
-              @@logger.debug("#save: pdating attribute of existing entry:  #{name+suffix}: #{value.inspect}")
-              entry.push(LDAP.mod(LDAP::LDAP_MOD_REPLACE|binary, name + suffix, value))
-            else
-              # Since some types do not have equality matching rules, delete doesn't work
-              # Replacing with nothing is equivalent.
-              @@logger.debug("#save: removing attribute from existing entry:  #{name+suffix}")
-              entry.push(LDAP.mod(LDAP::LDAP_MOD_REPLACE|binary, name + suffix, []))
-            end
-          end
+          @@logger.debug("#save: adding attribute to existing entry:  #{name+suffix}: #{value.inspect}")
+          # REPLACE will function like ADD, but doesn't hit EQUALITY problems
+          # TODO: Added equality(attr) to Schema2
+          entry.push(LDAP.mod(LDAP::LDAP_MOD_REPLACE|binary, name + suffix, value)) unless value.empty?
         end
-        @@logger.debug('#save: finished traversing ldap_data')
-        @@logger.debug('#save: traversing data determining adds')
-        data.each do |pair|
-          suffix = ''
-          binary = 0
-
-          name, *suffix_a = pair[0].split(/;/)
-          suffix = ';' + suffix_a.join(';') if suffix_a.size > 0
-          name = @attr_methods[name]
-          name = pair[0].split(/;/)[0] if name.nil? # for obj class or removed vals
-          value = pair[1]
-          # Make sure to change this to an Array if there was mistake earlier.
-          value = [] if value.nil?
-
-          if not replaceable.member? name+suffix
-            # Detect subtypes and account for them
-            binary = LDAP::LDAP_MOD_BVALUES if Person.schema.binary? name
-            @@logger.debug("#save: adding attribute to existing entry:  #{name+suffix}: #{value.inspect}")
-            # REPLACE will function like ADD, but doesn't hit EQUALITY problems
-            # TODO: Added equality(attr) to Schema2
-            entry.push(LDAP.mod(LDAP::LDAP_MOD_REPLACE|binary, name + suffix, value)) unless value.empty?
-          end
-        end
-        @@logger.debug('#save: traversing data complete')
-        #Person.connection(SaveError.new(
-        #                "Failed to modify: '#{entry}'")) do |conn|
-          @@logger.debug("#save: modifying #{@dn}")
-          @instance_connection.modify(@dn, entry)
-          @@logger.debug('#save: modify successful')
-        #end
-      else # add everything!
-        @@logger.debug('#save: adding all attribute value pairs')
-        @@logger.debug("#save: adding #{@attr_methods[dnattr()].inspect} = #{data[@attr_methods[dnattr()]].inspect}")
-        entry.push(LDAP.mod(LDAP::LDAP_MOD_ADD, @attr_methods[dnattr()], 
-          data[@attr_methods[dnattr()]]))
-        @@logger.debug("#save: adding objectClass = #{data[@attr_methods['objectClass']].inspect}")
-        entry.push(LDAP.mod(LDAP::LDAP_MOD_ADD, 'objectClass', 
-          data[@attr_methods['objectClass']]))
-        data.each do |pair|
-          if pair[1].size > 0  and pair[0] != 'objectClass' and pair[0] != @attr_methods[dnattr()]
-            # Detect subtypes and account for them
-            if Person.schema.binary? pair[0].split(/;/)[0]
-              binary = LDAP::LDAP_MOD_BVALUES 
-            else
-              binary = 0
-            end
-            @@logger.debug("#save: adding attribute to new entry:  #{pair[0].inspect}: #{pair[1].inspect}")
-            entry.push(LDAP.mod(LDAP::LDAP_MOD_ADD|binary, pair[0], pair[1]))
-          end
-        end
-        #Person.connection(SaveError.new(
-        #                "Failed to add: '#{entry}'")) do |conn|
-          @@logger.debug("#save: adding #{@dn}")
-          @instance_connection.add(@dn, entry)
-          @@logger.debug("#write: add successful")
-          @exists = true
-        #end
       end
-      @@logger.debug("#save: resetting @ldap_data to a dup of @data")
-      @ldap_data = Marshal.load(Marshal.dump(data))
-      # Delete items disallowed by objectclasses. 
-      # They should have been removed from ldap.
-      @@logger.debug('#save: removing attributes from @ldap_data not sent in data')
-      bad_attrs.each do |removeme|
-        @ldap_data.delete(removeme) 
+      @@logger.debug('#save: traversing data complete')
+      #Person.connection(SaveError.new(
+      #                "Failed to modify: '#{entry}'")) do |conn|
+        @@logger.debug("#save: modifying #{@dn}")
+        SeriesOfTubes.instance.get_connection(self.uid[0]).modify(@dn, entry)
+        @@logger.debug('#save: modify successful')
+      #end
+    else # add everything!
+      @@logger.debug('#save: adding all attribute value pairs')
+      @@logger.debug("#save: adding #{@attr_methods[dnattr()].inspect} = #{data[@attr_methods[dnattr()]].inspect}")
+      entry.push(LDAP.mod(LDAP::LDAP_MOD_ADD, @attr_methods[dnattr()], 
+        data[@attr_methods[dnattr()]]))
+      @@logger.debug("#save: adding objectClass = #{data[@attr_methods['objectClass']].inspect}")
+      entry.push(LDAP.mod(LDAP::LDAP_MOD_ADD, 'objectClass', 
+        data[@attr_methods['objectClass']]))
+      data.each do |pair|
+        if pair[1].size > 0  and pair[0] != 'objectClass' and pair[0] != @attr_methods[dnattr()]
+          # Detect subtypes and account for them
+          if Person.schema.binary? pair[0].split(/;/)[0]
+            binary = LDAP::LDAP_MOD_BVALUES 
+          else
+            binary = 0
+          end
+          @@logger.debug("#save: adding attribute to new entry:  #{pair[0].inspect}: #{pair[1].inspect}")
+          entry.push(LDAP.mod(LDAP::LDAP_MOD_ADD|binary, pair[0], pair[1]))
+        end
       end
-      @@logger.debug('#save: @ldap_data reset complete')
-      @@logger.debug('stub: save exitted')
-      self
+      #Person.connection(SaveError.new(
+      #                "Failed to add: '#{entry}'")) do |conn|
+        @@logger.debug("#save: adding #{@dn}")
+        SeriesOfTubes.instance.get_connection(self.uid[0]).add(@dn, entry)
+        @@logger.debug("#write: add successful")
+        @exists = true
+      #end
     end
+    @@logger.debug("#save: resetting @ldap_data to a dup of @data")
+    @ldap_data = Marshal.load(Marshal.dump(data))
+    # Delete items disallowed by objectclasses. 
+    # They should have been removed from ldap.
+    @@logger.debug('#save: removing attributes from @ldap_data not sent in data')
+    bad_attrs.each do |removeme|
+      @ldap_data.delete(removeme) 
+    end
+    @@logger.debug('#save: @ldap_data reset complete')
+    @@logger.debug('stub: save exitted')
+    self
+  end
 end

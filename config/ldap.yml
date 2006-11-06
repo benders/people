@@ -4,6 +4,7 @@ development:
   !ruby/symbol host: ldap.slackworks.com
   !ruby/symbol base: dc=slackworks,dc=com 
   !ruby/symbol allow_anonymous: true
+  !ruby/symbol timeout: 30
   
 test:
   !ruby/symbol host: ldap.slackworks.com
@@ -14,4 +15,4 @@ production:
   !ruby/symbol host: ldap.slackworks.com
   !ruby/symbol base: dc=slackworks,dc=com 
   !ruby/symbol allow_anonymous: true
-  
+  !ruby/symbol timeout: 30
