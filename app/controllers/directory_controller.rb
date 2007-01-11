@@ -2,10 +2,10 @@ class DirectoryController < ApplicationController
   before_filter :authenticate, :only => [ :show ]
 
   def index
-    people = Group.new('Slackworks People').members.collect do |name| 
-      Person.find(:attribute => 'uid', :value => name, :objects => true)
+    people = Group.find('Slackworks People').member.collect do |name| 
+      Person.find(name)
     end
-    people.sort! { |a,b| b.modifytimestamp <=> a.modifytimestamp }
+    #people.sort! { |a,b| b.modifytimestamp <=> a.modifytimestamp }
     
     page_size = 10
     start = 0
