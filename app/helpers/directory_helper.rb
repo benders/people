@@ -1,7 +1,7 @@
 module DirectoryHelper
 
   def person_image(uid)
-    "<img src=\"#{image_path('people/' + uid + '.jpg')}\" onerror=\"this.src='#{image_path('people/gay.jpg')}'\"/>"
+    "<img class=\"photo\" src=\"#{url_for(:controller => 'person', :action => 'image', :id => uid)}\" alt=\"#{uid}\" />"
   end
   
 end

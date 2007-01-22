@@ -14,10 +14,18 @@ class Person < ActiveLdap::Base
   end
   
   def nick_cn
-    if self.cn.type == String
+    if self.cn.class == String
       self.cn
     else
       self.cn[1]
+    end
+  end
+  
+  def name_cn
+    if self.cn.class == String
+      self.cn
+    else
+      self.cn[0]
     end
   end
 
@@ -55,9 +63,9 @@ class Person < ActiveLdap::Base
   def login(password)
     begin
       conn = LDAP::Conn.open(LDAP_CONFIG[:host])
-      # need to get rid of the prefix
-      conn.bind("uid=#{self.uid},ou=People,#{LDAP_CONFIG[:base]}", password)
-      SeriesOfTubes.instance.set_connection(self.uid[0], conn)
+      conn.bind("uid=#{self.uid},#{self.prefix},#{LDAP_CONFIG[:base]}", password)
+      SeriesOfTubes.instance.set_connection(self.uid, conn)
+      #Person.establish_connection(:password_block => Proc.new { password })
       return true
     rescue LDAP::ResultError
       return false
