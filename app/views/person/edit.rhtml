@@ -1,0 +1,17 @@
+<div style="text-align: center">
+  <div class="name title"><%= @person.uid %></div>
+</div>
+
+<% form_for :person, @person, :url => person_path(@person.uid), :html => {:method => :put} do |f| %>
+	<ul class="layout">
+    	<li>First name: <%= f.text_field :gn %></li>
+    	<li>Last name: <%= f.text_field :sn %></li>
+		<li>Email: <%= f.text_field :mail %></li>
+		<li>Home phone: <%= f.text_field :homeTelephoneNumber %></li>
+		<li>Mobile phone: <%= f.text_field :mobileTelephoneNumber %></li>
+		<li>Jabber: <%= f.text_field :jabber %></li>
+		<li>Base of Ops: <%= f.text_field :roomNumber %></li>
+		<li>Note: <%= f.text_area :note %></li>
+	</ul>
+	<%= submit_tag %>
+<% end %>

@@ -1,3 +1,5 @@
+
+# DEPRECATED
 class DirectoryController < ApplicationController
   before_filter :authenticate, :only => [ :show ]
 
@@ -20,9 +22,9 @@ class DirectoryController < ApplicationController
   end
 
   def show
-    @person = Person.find(:attribute => 'uid', :value => params[:id], :objects => true)
-    @attrs = [:cn, :roomNumber, :mail, :note, :jabber, :aim, :icq, 
-              :homePostalAddress, :labeledURI, :mtime]
+    @person = Person.find(params[:id])
+    #@attrs = [:cn, :roomNumber, :mail, :note, :jabber, :aim, :icq, 
+    #          :homePostalAddress, :labeledURI, :mtime]
               
     # for acts_as_renderable
     #if not [["TRUE"], ["FALSE"], [""]].include?(@person.show)

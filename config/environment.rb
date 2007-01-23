@@ -59,3 +59,17 @@ end
 
 # have to apply ActsAsRenderable to ActiveLdap (it applies itself to ActiveRecord automatically
 #ActiveLdap::Base.send(:include, SWX::ActsAsRenderable)
+Mime::Type.register "text/directory", :vcf
+
+# WARNING: here begins monkey-patching:
+#ActiveLdap::Base.module_eval do
+#  def Base.modify(dn, entries, options={})
+#    unnormalized_entries = entries.collect do |type, key, value|
+#      [type, key, unnormalize_attribute(key, value)]
+#    end
+#    #connection.modify(dn, unnormalized_entries, options)
+#    @@logger.debug("#save: modifying #{@dn}")
+#    SeriesOfTubes.instance.get_connection(self.uid).modify(dn, unnormalized_entries, options)
+#    @@logger.debug("#save: modify successful")
+#  end
+#end

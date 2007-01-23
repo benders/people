@@ -5,14 +5,20 @@ development:
   !ruby/symbol base: dc=slackworks,dc=com 
   !ruby/symbol allow_anonymous: true
   !ruby/symbol timeout: 30
+  !ruby/symbol method: ssl
+  !ruby/symbol port: 636
   
 test:
   !ruby/symbol host: ldap.slackworks.com
   !ruby/symbol base: dc=slackworks,dc=com
   !ruby/symbol allow_anonymous: true
+  !ruby/symbol method: ssl
+  !ruby/symbol port: 636
 
 production:
   !ruby/symbol host: ldap.slackworks.com
   !ruby/symbol base: dc=slackworks,dc=com 
   !ruby/symbol allow_anonymous: true
   !ruby/symbol timeout: 30
+  !ruby/symbol method: ssl
+  !ruby/symbol port: 636

@@ -1,0 +1,42 @@
+<div style="text-align: center">
+  <div class="name title"><%= @person.uid %></div>
+</div>
+
+<!-- http://microformats.org/wiki/hcard -->
+<div class="vcard">
+	<%= person_image(@person.uid) %>
+	<ul class="layout">
+		<li><span class="bold">Name:</span> 
+			<span class="fn"><%= @person.fullname %></span></li>
+		<li><span class="bold">Nickname:</span> 
+			<span class="nickname"><%= @person.nickname %></span></li>
+		<li><span class="bold">Email:</span> 
+			<a class="email" href="mailto:<%= @person.mail %>"><%= @person.mail %></a></li>
+		<% if !@person.homeTelephoneNumber.blank? %>
+		<li><div class="tel">
+			<span class="type bold">Home</span>
+			<span class="bold">Phone:</span> 
+			<span class="value"><%= @person.homeTelephoneNumber %></span>
+		</div></li>
+		<%end %>
+		<% if !@person.mobileTelephoneNumber.blank? %>
+		<li><div class="tel">
+			<span class="type bold">Mobile</span>
+			<span class="bold">Phone:</span> 
+			<span class="value"><%= @person.mobileTelephoneNumber %></span>
+		</div></li>
+		<%end %>
+		<% if !@person.jabber.blank? %>
+		<li><span class="bold">Jabber:</span> 
+			<a class="url" href="xmpp:<%= @person.jabber %>"><%= @person.jabber %></a></li>
+		<% end %>
+	</ul>
+</div> <!-- /vcard -->
+
+<ul style="list-style-type: none">
+	<li><span class="bold">Base of Ops:</span> <%= @person.roomNumber %></li>
+	<li><span class="bold">Note:</span> <span class="note"><%= @person.note %></span></li>
+</ul>
+<p>
+<a href="<%= edit_person_url(@person.uid) %>">EDIT</a>
+</p>

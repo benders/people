@@ -4,11 +4,10 @@ class LoginController < ApplicationController
   end
 
   def login
-    # the actual login form
-    if @params[:username] and @params[:password]
-      person = Person.new(@params[:username])
-      if person.login(@params[:password])
-        @session[:user] = {:value => @params[:username]}
+    if params[:username] and params[:password]
+      person = Person.find(params[:username])
+      if person.login(params[:password])
+        @session[:user] = {:value => params[:username]}
       else
         @flash[:notice] = "Invalid credentials" 
       end
