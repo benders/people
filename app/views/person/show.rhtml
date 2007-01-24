@@ -38,5 +38,6 @@
 	<li><span class="bold">Note:</span> <span class="note"><%= @person.note %></span></li>
 </ul>
 <p>
+<a href="<%= person_url(@person.uid)%>.vcf">Download vCard</a><br/>
 <a href="<%= edit_person_url(@person.uid) %>">EDIT</a>
 </p>

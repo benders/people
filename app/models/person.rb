@@ -3,7 +3,7 @@ require 'vpim/vcard'
 class Person < ActiveLdap::Base
   ldap_mapping :dn_attribute => 'uid', :prefix => 'ou=People', 
                :classes => ['top', 'organizationalPerson', 
-                            'inetOrgPerson', 'person', ]
+                            'inetOrgPerson', 'person']
 
   belongs_to :groups, :class => "Group",
              :many => "member"
@@ -20,19 +20,11 @@ class Person < ActiveLdap::Base
   end
   
   def nickname
-    if self.cn.class == String
-      self.cn
-    else
-      self.cn[1]
-    end
+    self.cn.class == String ? self.cn : self.cn[1]
   end
   
   def fullname
-    if self.cn.class == String
-      self.cn
-    else
-      self.cn[0]
-    end
+    self.cn.class == String ? self.cn : self.cn[0]
   end
 
 #  def modifytimestamp
@@ -84,7 +76,11 @@ class Person < ActiveLdap::Base
     conf[:password] = password
     auth_class = self.clone
     auth_class.establish_connection(conf)
-    auth_class.find(conf[:bind_dn])
+    user = auth_class.find(conf[:bind_dn])
+    
+    # stupid ActiveLdap trying to update the wrong attr
+    user.instance_eval { @data['uid'] = @ldap_data['uid'] }
+    return user
   end
   
   def to_vcard
@@ -94,9 +90,9 @@ class Person < ActiveLdap::Base
         name.family = self.sn
       end
 
-      maker.nickname(self.nickname)
+      maker.nickname = self.nickname
 
-      # not sure how to deal w/ address
+      # XXX: not sure how to deal w/ address
 
       maker.add_tel(self.homeTelephoneNumber) do |tel|
         tel.location = 'home'
@@ -117,7 +113,7 @@ class Person < ActiveLdap::Base
   #  unnormalized_entries = entries.collect do |type, key, value|
   #    [type, key, unnormalize_attribute(key, value)]
   #  end
-  #  #connection.modify(dn, unnormalized_entries, options)
+  #  connection.modify(dn, unnormalized_entries, options)
   #  @@logger.debug("#save: modifying #{dn}")
   #  real_entries = Person.connection.instance_eval do
   #    parse_entries(unnormalized_entries)
