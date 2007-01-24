@@ -62,7 +62,7 @@ class Person < ActiveLdap::Base
     begin
       conn = LDAP::Conn.open(LDAP_CONFIG[:host])
       conn.bind("uid=#{self.uid},#{self.prefix},#{LDAP_CONFIG[:base]}", password)
-      SeriesOfTubes.instance.set_connection(self.userid, conn)
+      #SeriesOfTubes.instance.set_connection(self.userid, conn)
       return true
     rescue LDAP::ResultError
       return false
@@ -71,16 +71,23 @@ class Person < ActiveLdap::Base
   
   def Person.authenticate(uid, password)
     conf = LDAP_CONFIG
-    conf[:allow_annonymous] = false
+    conf[:allow_anonymous] = false
     conf[:bind_dn] = "uid=#{uid},#{self.prefix},#{conf[:base]}"
     conf[:password] = password
+    conf[:store_password] = true
     auth_class = self.clone
-    auth_class.establish_connection(conf)
-    user = auth_class.find(conf[:bind_dn])
+    begin
+      auth_class.establish_connection(conf)
+      user = auth_class.find(conf[:bind_dn])
+    rescue ActiveLdap::EntryNotFound, ActiveLdap::AuthenticationError
+      return false
+    end
     
     # stupid ActiveLdap trying to update the wrong attr
     user.instance_eval { @data['uid'] = @ldap_data['uid'] }
-    return user
+    
+    MembersLounge.instance.add_member(uid, user)
+    return true
   end
   
   def to_vcard

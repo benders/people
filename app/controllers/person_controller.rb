@@ -1,5 +1,5 @@
 class PersonController < ApplicationController
-  before_filter :authenticate, :only => [ :show ]
+  before_filter :authenticate, :except => [ :index, :image ]
 
   def edit
     @person = Person.find(params[:id])
@@ -50,7 +50,7 @@ class PersonController < ApplicationController
   end
   
   def update
-    @person = Person.find(params[:id])
+    @person = MembersLounge.instance.member(session[:user])
     
     if @person.update_attributes(params[:person])
       flash[:notice] = 'Successfully updated.'
