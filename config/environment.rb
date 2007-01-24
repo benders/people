@@ -59,12 +59,6 @@ end
 
 # Include your application configuration below
 
-require 'active_ldap'
-if (ENV['RAILS_ENV'])
-  LDAP_CONFIG = YAML::load(IO.read("#{RAILS_ROOT}/config/ldap.yml"))[ENV['RAILS_ENV']]
-  ActiveLdap::Base.establish_connection(LDAP_CONFIG)
-end
-
 # have to apply ActsAsRenderable to ActiveLdap (it applies itself to ActiveRecord automatically
 #ActiveLdap::Base.send(:include, SWX::ActsAsRenderable)
 Mime::Type.register "text/directory", :vcf

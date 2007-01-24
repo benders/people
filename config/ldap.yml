@@ -1,24 +1,24 @@
 # all the keys have to be symbols or ActiveLDAP::Base.connect() gets mad
 
 development:
-  !ruby/symbol host: ldap.slackworks.com
-  !ruby/symbol base: dc=slackworks,dc=com 
-  !ruby/symbol allow_anonymous: true
-  !ruby/symbol timeout: 30
-  !ruby/symbol method: ssl
-  !ruby/symbol port: 636
+  host: ldap.slackworks.com
+  base: dc=slackworks,dc=com 
+  allow_anonymous: true
+  timeout: 30
+  method: ssl
+  port: 636
   
 test:
-  !ruby/symbol host: ldap.slackworks.com
-  !ruby/symbol base: dc=slackworks,dc=com
-  !ruby/symbol allow_anonymous: true
-  !ruby/symbol method: ssl
-  !ruby/symbol port: 636
+  host: ldap.slackworks.com
+  base: dc=slackworks,dc=com
+  allow_anonymous: true
+  method: ssl
+  port: 636
 
 production:
-  !ruby/symbol host: ldap.slackworks.com
-  !ruby/symbol base: dc=slackworks,dc=com 
-  !ruby/symbol allow_anonymous: true
-  !ruby/symbol timeout: 30
-  !ruby/symbol method: ssl
-  !ruby/symbol port: 636
+  host: ldap.slackworks.com
+  base: dc=slackworks,dc=com 
+  allow_anonymous: true
+  timeout: 30
+  method: ssl
+  port: 636
