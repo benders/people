@@ -1,0 +1,25 @@
+<% cache(:part => 'person', :id => person.uid) do %>
+<div class="person" id="<%= person.uid %>">
+ <div class="content">
+   <div class="photo">
+     <a href="<%= person_url(person.uid) %>">
+     <%= person_image(person.uid) %>
+     </a>
+     <div class="caption"><%= person.uid %></div>
+   </div>
+   <div class="blather">
+     <div class="title">
+       <span class="name">
+         <a href="<%= person_url(person.uid) %>">
+         <%= person.uid %>
+         </a>
+       </span> aka <span class="aliases"><%= person.nickname %></span>
+       <div><span style="font-weight: bold">Base of Ops:</span> <%= person.roomNumber %></div>
+     </div>
+   
+     <div class="note"><%= person.note %></div>
+   </div>
+   <div class="clear"></div>
+ </div>
+</div>
+<% end %>

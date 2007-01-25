@@ -1,17 +1,23 @@
 class PersonController < ApplicationController
-  before_filter :authenticate, :except => [ :index, :image ]
+  before_filter :authenticate, :except => [ :index, :image, :foo ]
 
   def edit
     @person = Person.find(params[:id])
   end
 
   def image
-    person = Person.find(params[:id])
-    if (person.respond_to?(:jpegPhoto) && person.jpegPhoto)
-      send_data(person.jpegPhoto, :type => 'image/jpeg', :disposition => 'inline')
-    else
-      send_file('public/images/people/gay.jpg', :type => 'image/jpeg', :disposition => 'inline')
+    content = read_fragment(:action => 'image', :id => params[:id])
+    unless content
+      logger.debug("No cache, loading image for #{params[:id]}")
+      person = Person.find(params[:id])
+      if (person.respond_to?(:jpegPhoto) && person.jpegPhoto)
+        content = person.jpegPhoto
+      else
+        content = File.new("public/images/people/gay.jpg").read
+      end
+      write_fragment({:action => 'image', :id => params[:id]}, content)
     end
+    send_data( content, :type => 'image/jpeg', :disposition => 'inline' )
   end
   
   def index
