@@ -21,8 +21,10 @@ class PersonController < ApplicationController
   end
   
   def index
-    people = Group.find('Slackworks People').member.collect do |name| 
-      Person.find(name)
+    people = Group.find('Slackworks People').member.collect do |dn| 
+      #Person.find(dn)
+      # Return the uid component of the DN only
+      /^uid=([^,]+),ou=People,dc=slackworks,dc=com$/.match(dn)[1]
     end
     #people.sort! { |a,b| b.modifytimestamp <=> a.modifytimestamp }
     
