@@ -35,7 +35,7 @@ class PersonController < ApplicationController
       timestamp[uid] = modifyTimestamp
     end
 
-    people.sort! { |a,b| timestamp[b] <=> timestamp[a] }
+    people.sort! { |a,b| (timestamp[b] || '') <=> (timestamp[a] || '')}
     
     page_size = 10
     start = 0
