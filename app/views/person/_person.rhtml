@@ -1,24 +1,24 @@
-<% cache(:part => 'person', :id => person) do %>
-<% personObj = Person.find(person) %>
-<div class="person" id="<%= person %>">
+<% cache({:part => 'person', :id => person.uid}, {:mtime => person.modifyTimestamp}) do %>
+<% person = Person.find(person.uid) %>
+<div class="person" id="<%= person.uid %>">
  <div class="content">
    <div class="photo">
-     <a href="<%= person_url(person) %>">
-     <%= person_image(person) %>
+     <a href="<%= person_url(person.uid) %>">
+     <%= person_image(person.uid, person.modifyTimestamp) %>
      </a>
-     <div class="caption"><%= person %></div>
+     <div class="caption"><%= person.uid %></div>
    </div>
    <div class="blather">
      <div class="title">
        <span class="name">
-         <a href="<%= person_url(person) %>">
-         <%= person %>
+         <a href="<%= person_url(person.uid) %>">
+         <%= person.uid %>
          </a>
-       </span> aka <span class="aliases"><%= personObj.nickname %></span>
-       <div><span style="font-weight: bold">Base of Ops:</span> <%= personObj.roomNumber %></div>
+       </span> aka <span class="aliases"><%= person.nickname %></span>
+       <div><span style="font-weight: bold">Base of Ops:</span> <%= person.roomNumber %></div>
      </div>
    
-     <div class="note"><%= personObj.note %></div>
+     <div class="note"><%= person.note %></div>
    </div>
    <div class="clear"></div>
  </div>

@@ -20,6 +20,7 @@ ActionController::Routing::Routes.draw do |map|
   map.resources :people, :controller => "person", :singular => "person"
 
   # Install the default route as the lowest priority.
+  map.connect ':controller/:action/:id.:mtime.:format'
   map.connect ':controller/:action/:id.:format'
   map.connect ':controller/:action/:id'
 end

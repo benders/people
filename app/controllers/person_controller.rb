@@ -1,3 +1,5 @@
+require 'ldap-patches'
+
 class PersonController < ApplicationController
   before_filter :authenticate, :only => [ :edit, :update ]
   #before_filter :user_connect
@@ -9,7 +11,6 @@ class PersonController < ApplicationController
   
   def index
     people = Group.find('Slackworks People').member.collect do |dn| 
-      #Person.find(dn)
       # Return the uid component of the DN only
       /^uid=([^,]+),#{Group.base}$/.match(dn)[1]
     end
@@ -18,10 +19,18 @@ class PersonController < ApplicationController
     Person.search(:attributes => ['uid', 'modifyTimestamp'], :scope => :one).each do |person|
       uid = person[1]['uid'][0]
       modifyTimestamp = person[1]['modifyTimestamp'][0]
-      timestamp[uid] = modifyTimestamp
+      timestamp[uid] = modifyTimestamp.ldap_to_time
     end
 
-    people.sort! { |a,b| (timestamp[b] || '') <=> (timestamp[a] || '')}
+    # Create a small anon Class to hand down to the templates, 
+    #  we don't want to instantiate a full Person unless the
+    #  cache is stale.
+    klass = Struct.new(nil, :uid, :modifyTimestamp)
+    people.collect! do |uid| 
+      next unless timestamp[uid]
+      klass.new(uid, timestamp[uid] )
+    end
+    people.sort! { |a,b| b.modifyTimestamp <=> a.modifyTimestamp }
     
     page_size = 10
     start = 0
@@ -34,7 +43,7 @@ class PersonController < ApplicationController
   end
   
   def show
-    @person = Person.find(params[:id])
+    @person = Person.find(params[:id]) unless params[:format] == 'jpg' 
     
     respond_to do |format|
       format.html
@@ -48,18 +57,7 @@ class PersonController < ApplicationController
           :type => 'text/directory'
       end
       format.jpg do
-        content = read_fragment(:action => 'show', :id => params[:id], :format => 'jpg')
-        unless content
-          logger.debug("No cache, loading image for #{params[:id]}")
-          person = Person.find(params[:id])
-          if (person.respond_to?(:jpegPhoto) && person.jpegPhoto)
-            content = person.jpegPhoto
-          else
-            content = File.new("public/images/people/gay.jpg").read
-          end
-          write_fragment({:action => 'image', :id => params[:id]}, content)
-        end
-        send_data( content, :type => 'image/jpeg', :disposition => 'inline' )
+        show_jpg
       end
     end
   end
@@ -78,5 +76,28 @@ class PersonController < ApplicationController
         render edit_person_url(@person.uid)
       end  
   end
+
+  private
   
+  def show_jpg
+    fragment_name = fragment_cache_key({:action => 'show', :id => params[:id], :format => params[:format], :mtime => nil})
+
+    logger.info("Checking cache for #{fragment_name}")
+    content = read_fragment(fragment_name, {:mtime => params[:mtime]})
+        
+    unless content
+      logger.info("Retreiving image for #{params[:id]}")
+      person = Person.find(params[:id])
+      if (person.respond_to?(:jpegPhoto) && person.jpegPhoto)
+        content = person.jpegPhoto
+      else
+        content = File.new("public/images/people/gay.jpg").read
+      end
+      logger.info("Writing cache for #{fragment_name}")
+      write_fragment(fragment_name, content, {:mtime => Time.now})
+    end
+    expires_in IMAGE_EXPIRES, :private => false, :public => true
+    response.headers["Last-Modified"] = Time.at(params[:mtime].to_i).httpdate
+    send_data( content, :type => 'image/jpeg', :disposition => 'inline' )
+  end
 end

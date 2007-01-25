@@ -42,7 +42,7 @@ Rails::Initializer.run do |config|
   # config.active_record.default_timezone = :utc
   
   # See Rails::Configuration for more options
-  config.action_controller.fragment_cache_store = :memory_store # or :file_store, "tmp/cache"
+  config.action_controller.fragment_cache_store =  :memory_store # or :file_store, "tmp/cache"
 end
 
 # Add new inflection rules using the following format 
@@ -66,3 +66,6 @@ Mime::Type.register "text/directory", :vcf
 Mime::Type.register "image/jpeg", :jpg
 
 LDAP_CONFIG = ActiveLdap::Base.configurations[ENV['RAILS_ENV']]
+
+IMAGE_EXPIRES = 1.day
+

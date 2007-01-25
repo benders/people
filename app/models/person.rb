@@ -1,4 +1,5 @@
 require 'vpim/vcard'
+require 'ldap-patches'
 
 class Person < ActiveLdap::Base
   ldap_mapping :dn_attribute => 'uid', :prefix => 'ou=People', 
@@ -30,8 +31,7 @@ class Person < ActiveLdap::Base
   end
   
   def modifyTimestamp
-    t = modifyTimestamp_before_type_cast
-    Time.gm(t[0..3], t[4..5], t[6..7], t[8..9], t[10..11]).localtime
+    modifyTimestamp_before_type_cast.ldap_to_time
   end
 
   alias_method :mtime, :modifyTimestamp
@@ -41,8 +41,7 @@ class Person < ActiveLdap::Base
   end
   
   def createTimestamp
-    t = modifyTimestamp_before_type_cast
-    Time.gm(t[0..3], t[4..5], t[6..7], t[8..9], t[10..11]).localtime
+    modifyTimestamp_before_type_cast.ldap_to_time
   end
 
   alias_method :ctime, :createTimestamp
