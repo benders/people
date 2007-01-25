@@ -1,24 +1,10 @@
 class PersonController < ApplicationController
-  before_filter :authenticate, :except => [ :index, :image ]
+  before_filter :authenticate, :only => [ :edit, :update ]
+  #before_filter :user_connect
   session :new_session => false
 
   def edit
     @person = Person.find(params[:id])
-  end
-
-  def image
-    content = read_fragment(:action => 'image', :id => params[:id])
-    unless content
-      logger.debug("No cache, loading image for #{params[:id]}")
-      person = Person.find(params[:id])
-      if (person.respond_to?(:jpegPhoto) && person.jpegPhoto)
-        content = person.jpegPhoto
-      else
-        content = File.new("public/images/people/gay.jpg").read
-      end
-      write_fragment({:action => 'image', :id => params[:id]}, content)
-    end
-    send_data( content, :type => 'image/jpeg', :disposition => 'inline' )
   end
   
   def index
@@ -62,12 +48,30 @@ class PersonController < ApplicationController
       format.vcf do
         send_data @person.to_vcard, :filename => "#{@person.uid}.vcf",
           :type => 'text/directory'
-      end 
+      end
+      format.jpg do
+        content = read_fragment(:action => 'show', :id => params[:id], :format => 'jpg')
+        unless content
+          logger.debug("No cache, loading image for #{params[:id]}")
+          person = Person.find(params[:id])
+          if (person.respond_to?(:jpegPhoto) && person.jpegPhoto)
+            content = person.jpegPhoto
+          else
+            content = File.new("public/images/people/gay.jpg").read
+          end
+          write_fragment({:action => 'image', :id => params[:id]}, content)
+        end
+        send_data( content, :type => 'image/jpeg', :disposition => 'inline' )
+      end
     end
   end
   
   def update
-    @person = MembersLounge.instance.member(session[:user])
+    @person = Person.find(session[:user])
+    
+    # stupid ActiveLdap trying to update the wrong attr
+    #@person.instance_eval { @data['uid'] = @person.uid }
+    #@person.instance_eval { @ldap_data['uid'] = @person.uid }
     
     if @person.update_attributes(params[:person])
       flash[:notice] = 'Successfully updated.'

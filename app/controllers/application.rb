@@ -14,4 +14,11 @@ class ApplicationController < ActionController::Base
       return false
     end
   end
+  
+  def user_connect
+    if session[:user]
+      conf = ActiveLdap::Base.configuration(session[:user])
+      ActiveLdap::Base.establish_connection(conf)
+    end
+  end
 end

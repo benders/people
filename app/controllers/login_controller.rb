@@ -5,7 +5,9 @@ class LoginController < ApplicationController
 
   def login
     if params[:username] and params[:password]
-      if Person.authenticate(params[:username], params[:password])
+      # probably should do this without getting a whole user
+      user = Person.find(params[:username])
+      if user.login(params[:password])
         session[:user] = params[:username]
       else
         flash[:notice] = "Invalid credentials" 

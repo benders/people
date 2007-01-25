@@ -63,3 +63,6 @@ end
 # have to apply ActsAsRenderable to ActiveLdap (it applies itself to ActiveRecord automatically
 #ActiveLdap::Base.send(:include, SWX::ActsAsRenderable)
 Mime::Type.register "text/directory", :vcf
+Mime::Type.register "image/jpeg", :jpg
+
+LDAP_CONFIG = ActiveLdap::Base.configurations[ENV['RAILS_ENV']]

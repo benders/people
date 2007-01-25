@@ -39,5 +39,7 @@
 </ul>
 <p>
 <a href="<%= person_url(@person.uid)%>.vcf">Download vCard</a><br/>
+<% if @person.uid == session[:user ]%>
 <a href="<%= edit_person_url(@person.uid) %>">EDIT</a>
+<% end %>
 </p>

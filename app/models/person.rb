@@ -7,8 +7,6 @@ class Person < ActiveLdap::Base
 
   belongs_to :groups, :class => "Group",
              :many => "member"
-
-  attr_accessor :instance_connection
   
   # By default there is a magical mapping of uid => userid,
   #  which returns the full DN.  I don't know why.  -xac
@@ -67,35 +65,18 @@ class Person < ActiveLdap::Base
   end
 
   def login(password)
+    conf = LDAP_CONFIG
+    conf[:allow_anonymous] = false
+    conf[:bind_dn] = self.dn
+    conf[:password] = password
+    conf[:store_password] = true
+    ActiveLdap::Base.define_configuration(self.uid, conf)
     begin
-      conn = LDAP::Conn.open(LDAP_CONFIG[:host])
-      conn.bind("uid=#{self.uid},#{self.prefix},#{LDAP_CONFIG[:base]}", password)
-      #SeriesOfTubes.instance.set_connection(self.userid, conn)
+      ActiveLdap::Base.establish_connection(conf)
       return true
     rescue LDAP::ResultError
       return false
     end
-  end
-  
-  def Person.authenticate(uid, password)
-    conf = LDAP_CONFIG
-    conf[:allow_anonymous] = false
-    conf[:bind_dn] = "uid=#{uid},#{self.prefix},#{conf[:base]}"
-    conf[:password] = password
-    conf[:store_password] = true
-    auth_class = self.clone
-    begin
-      auth_class.establish_connection(conf)
-      user = auth_class.find(conf[:bind_dn])
-    rescue ActiveLdap::EntryNotFound, ActiveLdap::AuthenticationError
-      return false
-    end
-    
-    # stupid ActiveLdap trying to update the wrong attr
-    user.instance_eval { @data['uid'] = @ldap_data['uid'] }
-    
-    MembersLounge.instance.add_member(uid, user)
-    return true
   end
   
   def to_vcard
@@ -121,21 +102,6 @@ class Person < ActiveLdap::Base
     end
     card.to_s
   end
-  
-  # WARNING: here begins monkey-patching:
-  # replaces ActiveLdap::Base.modify
-  #def Person.modify(dn, entries, options={})
-  #  unnormalized_entries = entries.collect do |type, key, value|
-  #    [type, key, unnormalize_attribute(key, value)]
-  #  end
-  #  connection.modify(dn, unnormalized_entries, options)
-  #  @@logger.debug("#save: modifying #{dn}")
-  #  real_entries = Person.connection.instance_eval do
-  #    parse_entries(unnormalized_entries)
-  #  end
-  #  SeriesOfTubes.instance.get_connection(dn).modify(dn, real_entries)
-  #  @@logger.debug("#save: modify successful")
-  #end
   
   private
   
