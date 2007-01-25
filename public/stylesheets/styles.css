@@ -41,3 +41,8 @@ ul.layout { list-style-type: none }
          
 .bold { font-weight: bold; }
 
+.pagetitle { 
+	text-align: center;
+	font-size: xx-large;
+	}
+

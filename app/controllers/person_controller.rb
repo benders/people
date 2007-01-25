@@ -31,8 +31,6 @@ class PersonController < ApplicationController
     
     @pages = Paginator.new(self, people.size, page_size, params[:page].to_i)
     @entries = people[start .. start + page_size - 1]
-    
-    render :layout => 'person/index'
   end
   
   def show

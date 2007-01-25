@@ -1,3 +1,9 @@
+<!-- We jump in part way in a template. This should probably be fixed.  -xac -->
+    <div class="pagetitle">Slackworks People</div>
+  </div>
+  <div class="clear"></div>
+</div>
+
 <%= render(:partial => "person", :collection => @entries) %>
 
 <div class="nav" id="pagination"> 
@@ -11,3 +17,6 @@
 Rico.Corner.round('<%= person %>');
 <% end %>
 </script>
+
+<!-- Now we have to drop the template back where we got it -->
+<div><div>
