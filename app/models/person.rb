@@ -27,15 +27,23 @@ class Person < ActiveLdap::Base
     self.cn.class == String ? self.cn : self.cn[0]
   end
 
+  def modifyTimestamp_before_type_cast
+    get_raw_attribute("modifyTimestamp").first
+  end
+  
   def modifyTimestamp
-    t = get_raw_attribute("modifyTimestamp").first
+    t = modifyTimestamp_before_type_cast
     Time.gm(t[0..3], t[4..5], t[6..7], t[8..9], t[10..11]).localtime
   end
 
   alias_method :mtime, :modifyTimestamp
   
+  def createTimestamp_before_type_cast
+    get_raw_attribute("createTimestamp").first
+  end
+  
   def createTimestamp
-    t = get_raw_attribute("createTimestamp").first
+    t = modifyTimestamp_before_type_cast
     Time.gm(t[0..3], t[4..5], t[6..7], t[8..9], t[10..11]).localtime
   end
 
