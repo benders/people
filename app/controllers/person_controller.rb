@@ -1,5 +1,6 @@
 class PersonController < ApplicationController
-  before_filter :authenticate, :except => [ :index, :image, :foo ]
+  before_filter :authenticate, :except => [ :index, :image ]
+  session :new_session => false
 
   def edit
     @person = Person.find(params[:id])
@@ -24,9 +25,17 @@ class PersonController < ApplicationController
     people = Group.find('Slackworks People').member.collect do |dn| 
       #Person.find(dn)
       # Return the uid component of the DN only
-      /^uid=([^,]+),ou=People,dc=slackworks,dc=com$/.match(dn)[1]
+      /^uid=([^,]+),#{Group.base}$/.match(dn)[1]
     end
-    #people.sort! { |a,b| b.modifytimestamp <=> a.modifytimestamp }
+    
+    timestamp = Hash.new
+    Person.search(:attributes => ['uid', 'modifyTimestamp'], :scope => :one).each do |person|
+      uid = person[1]['uid'][0]
+      modifyTimestamp = person[1]['modifyTimestamp'][0]
+      timestamp[uid] = modifyTimestamp
+    end
+
+    people.sort! { |a,b| timestamp[b] <=> timestamp[a] }
     
     page_size = 10
     start = 0
