@@ -9,15 +9,15 @@ class Person < ActiveLdap::Base
              :many => "member"
 
   attr_accessor :instance_connection
-
-  def id
-    uid
-  end
-
+  
+  # By default there is a magical mapping of uid => userid,
+  #  which returns the full DN.  I don't know why.  -xac
   def uid
-    self.userid =~ /uid=(\w+),.*/
-    $1
+    @ldap_data['uid'][0]
   end
+
+  # Use the uid (username), as the Rails id
+  alias_method :id, :uid
   
   def nickname
     self.cn.class == String ? self.cn : self.cn[1]
@@ -27,20 +27,20 @@ class Person < ActiveLdap::Base
     self.cn.class == String ? self.cn : self.cn[0]
   end
 
-#  def modifytimestamp
-#    @ldap_data['modifyTimestamp']
-#  end
-#
-#  def mtime
-#    m = @ldap_data['modifyTimestamp'][0]
-#    Time.gm(m[0..3], m[4..5], m[6..7], m[8..9], m[10..11]).localtime
-#  end
-#  
-#  def ctime
-#    m = @ldap_data['createTimestamp'][0]
-#    Time.gm(m[0..3], m[4..5], m[6..7], m[8..9], m[10..11]).localtime
-#  end
+  def modifyTimestamp
+    t = get_raw_attribute("modifyTimestamp").first
+    Time.gm(t[0..3], t[4..5], t[6..7], t[8..9], t[10..11]).localtime
+  end
 
+  alias_method :mtime, :modifyTimestamp
+  
+  def createTimestamp
+    t = get_raw_attribute("createTimestamp").first
+    Time.gm(t[0..3], t[4..5], t[6..7], t[8..9], t[10..11]).localtime
+  end
+
+  alias_method :ctime, :createTimestamp
+  
   # can we do this with method_missing without messing up the parent?
   def note
     if (self.attributes.include?('note'))
@@ -128,5 +128,11 @@ class Person < ActiveLdap::Base
   #  SeriesOfTubes.instance.get_connection(dn).modify(dn, real_entries)
   #  @@logger.debug("#save: modify successful")
   #end
+  
+  private
+  
+  def get_raw_attribute(attribute)
+    self.class.search(:prefix => "uid=#{self.uid}", :attributes => [attribute])[0][1][attribute]
+  end
   
 end
