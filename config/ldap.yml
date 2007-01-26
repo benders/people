@@ -4,7 +4,6 @@ development:
   host: ldap.slackworks.com
   base: dc=slackworks,dc=com 
   allow_anonymous: true
-  timeout: 30
   method: ssl
   port: 636
   
@@ -19,6 +18,5 @@ production:
   host: ldap.slackworks.com
   base: dc=slackworks,dc=com 
   allow_anonymous: true
-  timeout: 30
   method: ssl
   port: 636
