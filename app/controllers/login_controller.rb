@@ -1,5 +1,6 @@
 class LoginController < ApplicationController
   def index
+    session[:return_to] ||= params[:return_to]
     render :action => "login" 
   end
 

@@ -2,7 +2,7 @@ require 'ldap-patches'
 
 class PersonController < ApplicationController
   before_filter :authenticate, :only => [ :edit, :update ]
-  #before_filter :user_connect
+  before_filter :user_connect
   session :new_session => false
 
   def edit

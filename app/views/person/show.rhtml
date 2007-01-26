@@ -10,8 +10,10 @@
 			<span class="fn"><%= @person.fullname %></span></li>
 		<li><span class="bold">Nickname:</span> 
 			<span class="nickname"><%= @person.nickname %></span></li>
+		<% if !@person.mail.blank? %>
 		<li><span class="bold">Email:</span> 
 			<a class="email" href="mailto:<%= @person.mail %>"><%= @person.mail %></a></li>
+		<% end %>
 		<% if !@person.homeTelephoneNumber.blank? %>
 		<li><div class="tel">
 			<span class="type bold">Home</span>
@@ -26,6 +28,14 @@
 			<span class="value"><%= @person.mobileTelephoneNumber %></span>
 		</div></li>
 		<%end %>
+		<% if !@person.postalAddress.blank? %>
+		<li><div class="adr">
+			<span class="type bold">Home</span>
+			<abbr class="type bold" title="postal">Address:</abbr> 
+			<span class="street-address"><%= @person.postalAddress %></span><br/>
+			<span class="street-address"><%= @person.postalCode %></span>
+		</div></li>
+		<%end %>
 		<% if !@person.jabber.blank? %>
 		<li><span class="bold">Jabber:</span> 
 			<a class="url" href="xmpp:<%= @person.jabber %>"><%= @person.jabber %></a></li>
@@ -38,8 +48,12 @@
 	<li><span class="bold">Note:</span> <span class="note"><%= @person.note %></span></li>
 </ul>
 <p>
+<% if session[:user].blank? %>
+<a href="<%= url_for(:controller => 'login', :return_to => @request.request_uri) %>">Login for more detail</a>
+<% else %>
 <a href="<%= person_url(@person.uid)%>.vcf">Download vCard</a><br/>
-<% if @person.uid == session[:user ]%>
-<a href="<%= edit_person_url(@person.uid) %>">EDIT</a>
+  <% if @person.uid == session[:user] %>
+  <a href="<%= edit_person_url(@person.uid) %>">EDIT</a>
+  <% end %>
 <% end %>
 </p>
