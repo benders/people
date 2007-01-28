@@ -9,7 +9,10 @@
       
    </HEAD>
    <BODY>
-
+<% auth = controller.get_http_auth %>
+<% if auth %>
+<div class="loginbar">Logged in as: <%=h auth[:username] %></div>
+<% end %>
 <p class="flash"><%= flash[:notice] %></p>
 <div class="frame" id="frame">
   <div class="content">

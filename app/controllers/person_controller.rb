@@ -2,9 +2,30 @@ require 'ldap-patches'
 
 class PersonController < ApplicationController
   before_filter :authenticate, :only => [ :edit, :update ]
-  before_filter :user_connect
+  around_filter :bind_as_user
+
   session :new_session => false
 
+  def bind_as_user
+    auth = get_http_auth
+    if auth
+      begin
+        user_dn = Person.search(:attribute => 'uid', :value => auth[:username], 
+          :attributes => 'dn').first[0]
+        Person.connection.instance_variable_set('@password', auth[:password])
+        logger.info("Binding as #{auth[:username]}/#{'*' * auth[:password].length}")
+        Person.connection.rebind({:bind_dn => user_dn, :allow_anonymous => false})
+      rescue Exception => e
+        logger.warn("Couldn't bind as user: #{$!}")
+      end 
+    end
+    yield
+    if auth
+      Person.connection.instance_variable_set('@password', nil)
+      Person.connection.rebind({:allow_anonymous => true})
+    end
+  end
+      
   def edit
     @person = Person.find(params[:id])
   end
@@ -17,9 +38,13 @@ class PersonController < ApplicationController
     
     timestamp = Hash.new
     Person.search(:attributes => ['uid', 'modifyTimestamp'], :scope => :one).each do |person|
-      uid = person[1]['uid'][0]
-      modifyTimestamp = person[1]['modifyTimestamp'][0]
-      timestamp[uid] = modifyTimestamp.ldap_to_time
+      begin
+        uid = person[1]['uid'][0]
+        modifyTimestamp = person[1]['modifyTimestamp'][0]
+        timestamp[uid] = modifyTimestamp.ldap_to_time
+      rescue
+        next
+      end
     end
 
     # Create a small anon Class to hand down to the templates, 
@@ -30,6 +55,7 @@ class PersonController < ApplicationController
       next unless timestamp[uid]
       klass.new(uid, timestamp[uid] )
     end
+    people.compact!
     people.sort! { |a,b| b.modifyTimestamp <=> a.modifyTimestamp }
     
     page_size = 10
@@ -44,6 +70,9 @@ class PersonController < ApplicationController
   
   def show
     @person = Person.find(params[:id]) unless params[:format] == 'jpg' 
+    unless params[:format] == 'jpg'
+      return false unless require_http_auth
+    end
     
     respond_to do |format|
       format.html

@@ -1,27 +1,46 @@
 # Filters added to this controller apply to all controllers in the application.
 # Likewise, all the methods added will be available for all controllers.
 
+require 'base64'
+
 class ApplicationController < ActionController::Base
   # Pick a unique cookie name to distinguish our session data from others'
   session :session_key => '_people_session_id'
 
-  protected
-
-  def authenticate
-    unless session[:user]
-      session[:return_to] = @request.request_uri
-      redirect_to :controller => "login" 
-      return false
+  def get_http_auth
+    if request.env['HTTP_AUTHORIZATION']
+      authtype, token = request.env['HTTP_AUTHORIZATION'].split
+      if authtype.upcase == "BASIC"
+        username, password = Base64.decode64(token).split(':', 2)
+        return {:username => username, :password => password}
+      else
+        logger.warn("Unsupported Auth mechanism #{authtype}")
+      end
     end
+    return nil
   end
   
-  def user_connect
-    if session[:user]
-      conf = ActiveLdap::Base.configuration(session[:user])
-      ActiveLdap::Base.establish_connection(conf)
+  def require_http_auth
+    auth = get_http_auth
+    unless auth
+      response.headers['WWW-Authenticate'] = 'Basic realm="Slackworks"'
+      render(:status => 401, :text => "Authentication Required")
+      false
+    else
+      auth
     end
   end
-   
+
+  protected
+
+#  def authenticate
+#    unless session[:user]
+#      session[:return_to] = @request.request_uri
+#      redirect_to :controller => "login" 
+#      return false
+#    end
+#  end
+     
   #
   # Custom Fragment Cache that allows the :mtime option
   #
