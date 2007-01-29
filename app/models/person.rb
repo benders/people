@@ -63,20 +63,20 @@ class Person < ActiveLdap::Base
     end
   end
 
-  def login(password)
-    conf = LDAP_CONFIG
-    conf[:allow_anonymous] = false
-    conf[:bind_dn] = self.dn
-    conf[:password] = password
-    conf[:store_password] = true
-    ActiveLdap::Base.define_configuration(self.uid, conf)
-    begin
-      ActiveLdap::Base.establish_connection(conf)
-      return true
-    rescue LDAP::ResultError
-      return false
-    end
-  end
+#  def login(password)
+#    conf = LDAP_CONFIG
+#    conf[:allow_anonymous] = false
+#    conf[:bind_dn] = self.dn
+#    conf[:password] = password
+#    conf[:store_password] = true
+#    ActiveLdap::Base.define_configuration(self.uid, conf)
+#    begin
+#      ActiveLdap::Base.establish_connection(conf)
+#      return true
+#    rescue LDAP::ResultError
+#      return false
+#    end
+#  end
   
   def to_vcard
     card = Vpim::Vcard::Maker.make2 do |maker|

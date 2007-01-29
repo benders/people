@@ -1,7 +1,7 @@
 require 'ldap-patches'
 
 class PersonController < ApplicationController
-  before_filter :authenticate, :only => [ :edit, :update ]
+  before_filter :require_http_auth, :only => [ :edit, :update ]
   around_filter :bind_as_user
 
   session :new_session => false
@@ -10,19 +10,24 @@ class PersonController < ApplicationController
     auth = get_http_auth
     if auth
       begin
-        user_dn = Person.search(:attribute => 'uid', :value => auth[:username], 
-          :attributes => 'dn').first[0]
+        user_dn = "uid=#{auth[:username]},#{Person.base}"
+        Person.connection.instance_variable_set('@bind_dn', user_dn)
         Person.connection.instance_variable_set('@password', auth[:password])
+        Person.connection.instance_variable_set('@allow_anonymous', false)
         logger.info("Binding as #{auth[:username]}/#{'*' * auth[:password].length}")
-        Person.connection.rebind({:bind_dn => user_dn, :allow_anonymous => false})
+        Person.connection.unbind
+        Person.connection.bind()
       rescue Exception => e
         logger.warn("Couldn't bind as user: #{$!}")
       end 
     end
     yield
     if auth
+      Person.connection.instance_variable_set('@bind_dn', nil)
       Person.connection.instance_variable_set('@password', nil)
-      Person.connection.rebind({:allow_anonymous => true})
+      Person.connection.instance_variable_set('@allow_anonymous', true)
+      Person.connection.unbind
+      Person.connection.bind()
     end
   end
       
@@ -69,8 +74,10 @@ class PersonController < ApplicationController
   end
   
   def show
-    @person = Person.find(params[:id]) unless params[:format] == 'jpg' 
     unless params[:format] == 'jpg'
+      @person = Person.find(params[:id])
+      logger.debug("Using connection " + 
+        @person.connection.instance_variable_get('@connection').to_s)
       return false unless require_http_auth
     end
     
@@ -105,8 +112,6 @@ class PersonController < ApplicationController
         render edit_person_url(@person.uid)
       end  
   end
-
-  private
   
   def show_jpg
     fragment_name = fragment_cache_key({:action => 'show', :id => params[:id], :format => params[:format], :mtime => nil})
@@ -116,9 +121,11 @@ class PersonController < ApplicationController
         
     unless content
       logger.info("Retreiving image for #{params[:id]}")
-      person = Person.find(params[:id])
-      if (person.respond_to?(:jpegPhoto) && person.jpegPhoto)
-        content = person.jpegPhoto
+      @person = Person.find(params[:id])
+      logger.debug("Using connection " + 
+        @person.connection.instance_variable_get('@connection').to_s)
+      if (@person.respond_to?(:jpegPhoto) && @person.jpegPhoto)
+        content = @person.jpegPhoto
       else
         content = File.new("public/images/people/gay.jpg").read
       end
