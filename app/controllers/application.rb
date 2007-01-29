@@ -7,31 +7,35 @@ class ApplicationController < ActionController::Base
   # Pick a unique cookie name to distinguish our session data from others'
   session :session_key => '_people_session_id'
 
+  before_filter :get_http_auth
+
+  protected
+
   def get_http_auth
     if request.env['HTTP_AUTHORIZATION']
       authtype, token = request.env['HTTP_AUTHORIZATION'].split
       if authtype.upcase == "BASIC"
         username, password = Base64.decode64(token).split(':', 2)
-        return {:username => username, :password => password}
+        @http_auth = {:username => username, :password => password}
       else
         logger.warn("Unsupported Auth mechanism #{authtype}")
+        return false
       end
+      @http_auth ||= nil
     end
-    return nil
+    
   end
   
+  # This uses the @http_auth instance variable, so it must be run after get_http_auth
   def require_http_auth
-    auth = get_http_auth
-    unless auth
+    unless @http_auth
       response.headers['WWW-Authenticate'] = 'Basic realm="Slackworks"'
       render(:status => 401, :text => "Authentication Required")
       false
     else
-      auth
+      @http_auth
     end
   end
-
-  protected
 
 #  def authenticate
 #    unless session[:user]

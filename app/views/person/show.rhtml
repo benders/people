@@ -48,11 +48,11 @@
 	<li><span class="bold">Note:</span> <span class="note"><%= @person.note %></span></li>
 </ul>
 <p>
-<% if session[:user].blank? %>
+<% if @http_auth.nil? %>
 <a href="<%= url_for(:controller => 'login', :return_to => @request.request_uri) %>">Login for more detail</a>
 <% else %>
 <a href="<%= person_url(@person.uid)%>.vcf">Download vCard</a><br/>
-  <% if @person.uid == session[:user] %>
+  <% if @person.uid == @http_auth[:username] %>
   <a href="<%= edit_person_url(@person.uid) %>">EDIT</a>
   <% end %>
 <% end %>
