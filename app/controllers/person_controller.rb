@@ -21,7 +21,9 @@ class PersonController < ApplicationController
         logger.warn("Couldn't bind as user: #{$!}")
       end 
     end
+    
     yield
+    
     if auth
       Person.connection.instance_variable_set('@bind_dn', nil)
       Person.connection.instance_variable_set('@password', nil)
@@ -78,6 +80,8 @@ class PersonController < ApplicationController
       @person = Person.find(params[:id])
       logger.debug("Using connection " + 
         @person.connection.instance_variable_get('@connection').to_s)
+        
+      # cover show by http_auth, but let jpg slip through
       return false unless require_http_auth
     end
     
@@ -99,11 +103,7 @@ class PersonController < ApplicationController
   end
   
   def update
-    @person = Person.find(session[:user])
-    
-    # stupid ActiveLdap trying to update the wrong attr
-    #@person.instance_eval { @data['uid'] = @person.uid }
-    #@person.instance_eval { @ldap_data['uid'] = @person.uid }
+    @person = Person.find(get_http_auth[:username])
     
     if @person.update_attributes(params[:person])
       flash[:notice] = 'Successfully updated.'
@@ -114,7 +114,8 @@ class PersonController < ApplicationController
   end
   
   def show_jpg
-    fragment_name = fragment_cache_key({:action => 'show', :id => params[:id], :format => params[:format], :mtime => nil})
+    fragment_name = fragment_cache_key({:action => 'show', :id => params[:id], 
+                                        :format => params[:format], :mtime => nil})
 
     logger.info("Checking cache for #{fragment_name}")
     content = read_fragment(fragment_name, {:mtime => params[:mtime]})

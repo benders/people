@@ -31,8 +31,8 @@
 		<% if !@person.postalAddress.blank? %>
 		<li><div class="adr">
 			<span class="type bold">Home</span>
-			<abbr class="type bold" title="postal">Address:</abbr> 
-			<span class="street-address"><%= @person.postalAddress %></span><br/>
+			<span class="type bold" title="postal">Address:</span> 
+			<span class="street-address"><%= @person.postalAddress %></span>
 			<span class="street-address"><%= @person.postalCode %></span>
 		</div></li>
 		<%end %>

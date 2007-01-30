@@ -1234,7 +1234,7 @@ module ActiveLdap
           # delete doesn't work
           # Replacing with nothing is equivalent.
           logger.debug {"#save: removing attribute from existing entry: " +
-                          "#{new_key}"}
+                          "#{k}"}
           if !data.has_key?(k) and schema.binary_required?(k)
             value = [{'binary' => []}]
           end
