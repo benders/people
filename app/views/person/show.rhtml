@@ -4,7 +4,7 @@
 
 <!-- http://microformats.org/wiki/hcard -->
 <div class="vcard">
-	<%= person_image(@person.uid) %>
+	<%= person_image(@person.uid, person.modifyTimestamp) %>
 	<ul class="layout">
 		<li><span class="bold">Name:</span> 
 			<span class="fn"><%= @person.fullname %></span></li>
