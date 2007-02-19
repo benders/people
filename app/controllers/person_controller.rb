@@ -3,37 +3,6 @@ require 'ldap-patches'
 class PersonController < ApplicationController
   before_filter :require_http_auth, :only => [ :edit, :update ]
   before_filter :require_edit, :only => [ :edit, :update ]
-  #around_filter :bind_as_user
-
-  session :new_session => false
-
-  # XXX: axe
-  # def bind_as_user
-  #   auth = get_http_auth
-  #   if auth
-  #     begin
-  #       user_dn = "uid=#{auth[:username]},#{Person.base}"
-  #       Person.connection.instance_variable_set('@bind_dn', user_dn)
-  #       Person.connection.instance_variable_set('@password', auth[:password])
-  #       Person.connection.instance_variable_set('@allow_anonymous', false)
-  #       logger.info("Binding as #{auth[:username]}/#{'*' * auth[:password].length}")
-  #       Person.connection.unbind
-  #       Person.connection.bind()
-  #     rescue Exception => e
-  #       logger.warn("Couldn't bind as user: #{$!}")
-  #     end 
-  #   end
-  #   
-  #   yield
-  #   
-  #   if auth
-  #     Person.connection.instance_variable_set('@bind_dn', nil)
-  #     Person.connection.instance_variable_set('@password', nil)
-  #     Person.connection.instance_variable_set('@allow_anonymous', true)
-  #     Person.connection.unbind
-  #     Person.connection.bind()
-  #   end
-  # end
       
   def edit
     @person = Person.find(params[:id])
