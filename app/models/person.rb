@@ -6,8 +6,12 @@ class Person < ActiveLdap::Base
                :classes => ['top', 'organizationalPerson', 
                             'inetOrgPerson', 'person']
 
-  belongs_to :groups, :class => "Group",
-             :many => "member"
+  # usage: Person#groups.include?(Group#)
+  #   or the faster
+  # Person#groups.map{ |g| g.dn }.include?("cn=Administrators,#{Group.base}")
+  belongs_to :groups,
+             :many => "member",
+             :foreign_key => "dn"
   
   # By default there is a magical mapping of uid => userid,
   #  which returns the full DN.  I don't know why.  -xac
