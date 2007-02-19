@@ -22,6 +22,7 @@ class ApplicationController < ActionController::Base
       # this is the regular location
       authtype, token = request.env['HTTP_AUTHORIZATION'].to_s.split
     end
+    return nil unless authtype
     if authtype.upcase == "BASIC"
       username, password = Base64.decode64(token).split(':', 2)
       @http_auth = {:username => username, :password => password}
