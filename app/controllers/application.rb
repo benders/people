@@ -12,18 +12,24 @@ class ApplicationController < ActionController::Base
   protected
 
   def get_http_auth
-    if request.env['HTTP_AUTHORIZATION']
-      authtype, token = request.env['HTTP_AUTHORIZATION'].split
-      if authtype.upcase == "BASIC"
-        username, password = Base64.decode64(token).split(':', 2)
-        @http_auth = {:username => username, :password => password}
-      else
-        logger.warn("Unsupported Auth mechanism #{authtype}")
-        return false
-      end
-      @http_auth ||= nil
+    username, password = nil, nil
+    authtype, token = nil, nil
+    # extract authorisation credentials 
+    if request.env.has_key? 'X-HTTP_AUTHORIZATION' 
+      # try to get it where mod_rewrite might have put it 
+      authtype, token = request.env['X-HTTP_AUTHORIZATION'].to_s.split 
+    elsif request.env.has_key? 'HTTP_AUTHORIZATION'
+      # this is the regular location
+      authtype, token = request.env['HTTP_AUTHORIZATION'].to_s.split
     end
-    
+    if authtype.upcase == "BASIC"
+      username, password = Base64.decode64(token).split(':', 2)
+      @http_auth = {:username => username, :password => password}
+    else
+      logger.warn("Unsupported Auth mechanism #{authtype}")
+      return false
+    end
+    @http_auth ||= nil
   end
   
   # This uses the @http_auth instance variable, so it must be run after get_http_auth
