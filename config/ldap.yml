@@ -3,20 +3,26 @@
 development:
   host: ldap.slackworks.com
   base: dc=slackworks,dc=com 
-  allow_anonymous: true
+  allow_anonymous: false
+  bind_dn: uid=root,dc=slackworks,dc=com
+  password: menthol
   method: ssl
   port: 636
   
 test:
   host: ldap.slackworks.com
   base: dc=slackworks,dc=com
-  allow_anonymous: true
+  allow_anonymous: false
+  bind_dn: uid=root,dc=slackworks,dc=com
+  password: menthol
   method: ssl
   port: 636
 
 production:
   host: ldap.slackworks.com
   base: dc=slackworks,dc=com 
-  allow_anonymous: true
+  allow_anonymous: false
+  bind_dn: uid=root,dc=slackworks,dc=com
+  password: menthol
   method: ssl
   port: 636

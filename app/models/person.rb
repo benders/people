@@ -13,6 +13,14 @@ class Person < ActiveLdap::Base
              :many => "member",
              :foreign_key => "dn"
   
+  def Person.admin?(uid)
+    Group.find('Administrators').member.include?("#{Person.dn_attribute}=#{uid},#{Person.base}")
+  end
+             
+  def admin?
+    self.groups.map { |g| g.dn }.include?("cn=Administrators,#{Group.base}")
+  end
+  
   # By default there is a magical mapping of uid => userid,
   #  which returns the full DN.  I don't know why.  -xac
   def uid

@@ -52,7 +52,7 @@
 <a href="<%= url_for(:controller => 'login', :return_to => @request.request_uri) %>">Login for more detail</a>
 <% else %>
 <a href="<%= person_url(@person.uid)%>.vcf">Download vCard</a><br/>
-  <% if @person.uid == @http_auth[:username] %>
+  <% if @person.uid == @http_auth[:username] || @person.admin? %>
   <a href="<%= edit_person_url(@person.uid) %>">EDIT</a>
   <% end %>
 <% end %>

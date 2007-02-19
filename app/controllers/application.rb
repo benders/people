@@ -43,14 +43,13 @@ class ApplicationController < ActionController::Base
       @http_auth
     end
   end
-
-#  def authenticate
-#    unless session[:user]
-#      session[:return_to] = @request.request_uri
-#      redirect_to :controller => "login" 
-#      return false
-#    end
-#  end
+  
+  def require_edit
+    unless @http_auth[:username] == params[:id] || Person.admin?(@http_auth[:username])
+      render(:status => 403, :text => "Self Editing Only")
+      return false
+    end
+  end
      
   #
   # Custom Fragment Cache that allows the :mtime option
