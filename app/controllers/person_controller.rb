@@ -76,12 +76,17 @@ class PersonController < ApplicationController
   def update
     @person = Person.find(params[:id])
     
+    # XXX: temporary kludge
+    if params[:person][:upload_jpegPhoto].respond_to?(:read)
+      params[:person][:jpegPhoto] = params[:person][:upload_jpegPhoto].read
+    end
+    
     if @person.update_attributes(params[:person])
       flash[:notice] = 'Successfully updated.'
-        redirect_to person_url(@person.uid)
-      else
-        render edit_person_url(@person.uid)
-      end  
+      redirect_to person_url(@person.uid)
+    else
+      render edit_person_url(@person.uid)
+    end  
   end
   
   def show_jpg
