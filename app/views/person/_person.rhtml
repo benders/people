@@ -6,7 +6,7 @@
      <a href="<%= person_url(person.uid) %>">
      <%= person_image(person.uid, person.modifyTimestamp) %>
      </a>
-     <div class="caption"><%= person.uid %></div>
+     <div class="caption"><%= h person.uid %></div>
    </div>
    <div class="blather">
      <div class="title">
@@ -14,11 +14,11 @@
          <a href="<%= person_url(person.uid) %>">
          <%= person.uid %>
          </a>
-       </span> aka <span class="aliases"><%= person.nickname %></span>
-       <div><span style="font-weight: bold">Base of Ops:</span> <%= person.roomNumber %></div>
+       </span> aka <span class="aliases"><%= h person.nickname %></span>
+       <div><span style="font-weight: bold">Base of Ops:</span> <%= h person.roomNumber %></div>
      </div>
    
-     <div class="note"><%= person.note %></div>
+     <div class="note"><%= h person.note %></div>
    </div>
    <div class="clear"></div>
  </div>

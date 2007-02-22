@@ -7,45 +7,45 @@
 	<%= person_image(@person.uid, @person.modifyTimestamp) %>
 	<ul class="layout">
 		<li><span class="bold">Name:</span> 
-			<span class="fn"><%= @person.fullname %></span></li>
+			<span class="fn"><%= h @person.fullname %></span></li>
 		<li><span class="bold">Nickname:</span> 
-			<span class="nickname"><%= @person.nickname %></span></li>
+			<span class="nickname"><%= h @person.nickname %></span></li>
 		<% if !@person.mail.blank? %>
 		<li><span class="bold">Email:</span> 
-			<a class="email" href="mailto:<%= @person.mail %>"><%= @person.mail %></a></li>
+			<a class="email" href="mailto:<%= h @person.mail %>"><%= h @person.mail %></a></li>
 		<% end %>
 		<% if !@person.homeTelephoneNumber.blank? %>
 		<li><div class="tel">
 			<span class="type bold">Home</span>
 			<span class="bold">Phone:</span> 
-			<span class="value"><%= @person.homeTelephoneNumber %></span>
+			<span class="value"><%= h @person.homeTelephoneNumber %></span>
 		</div></li>
 		<%end %>
 		<% if !@person.mobileTelephoneNumber.blank? %>
 		<li><div class="tel">
 			<span class="type bold">Mobile</span>
 			<span class="bold">Phone:</span> 
-			<span class="value"><%= @person.mobileTelephoneNumber %></span>
+			<span class="value"><%= h @person.mobileTelephoneNumber %></span>
 		</div></li>
 		<%end %>
 		<% if !@person.postalAddress.blank? %>
 		<li><div class="adr">
 			<span class="type bold">Home</span>
 			<span class="type bold" title="postal">Address:</span> 
-			<span class="street-address"><%= @person.postalAddress %></span>
-			<span class="street-address"><%= @person.postalCode %></span>
+			<span class="street-address"><%= h @person.postalAddress %></span>
+			<span class="street-address"><%= h @person.postalCode %></span>
 		</div></li>
 		<%end %>
 		<% if !@person.jabber.blank? %>
 		<li><span class="bold">Jabber:</span> 
-			<a class="url" href="xmpp:<%= @person.jabber %>"><%= @person.jabber %></a></li>
+			<a class="url" href="xmpp:<%= h @person.jabber %>"><%= h @person.jabber %></a></li>
 		<% end %>
 	</ul>
 </div> <!-- /vcard -->
 
 <ul style="list-style-type: none">
-	<li><span class="bold">Base of Ops:</span> <%= @person.roomNumber %></li>
-	<li><span class="bold">Note:</span> <span class="note"><%= @person.note %></span></li>
+	<li><span class="bold">Base of Ops:</span> <%= h @person.roomNumber %></li>
+	<li><span class="bold">Note:</span> <span class="note"><%= h @person.note %></span></li>
 </ul>
 <p>
 <% if @http_auth.nil? %>
