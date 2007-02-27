@@ -2,6 +2,8 @@ require 'vpim/vcard'
 require 'ldap-patches'
 
 class Person < ActiveLdap::Base
+  include ::ActiveLdapPatch
+  
   ldap_mapping :dn_attribute => 'uid', :prefix => 'ou=People', 
                :classes => ['top', 'organizationalPerson', 
                             'inetOrgPerson', 'person']
@@ -29,6 +31,33 @@ class Person < ActiveLdap::Base
 
   # Use the uid (username), as the Rails id
   alias_method :id, :uid
+  
+  def jpegPhoto=(photo)
+    if photo.is_a?(Array)
+      photo = photo.first
+    end
+    
+    if photo.respond_to?(:read)
+      data = photo.read
+    elsif photo.is_a?(String)
+      data = photo
+    else
+      raise "Unsupported jpegPhoto class #{photo.class.to_s}"
+    end
+  
+    image = MiniMagick::Image.from_blob(data)
+    unless image.is_a?(MiniMagick::Image)
+      raise "Could not recognize image"
+    end
+    image.resize "200x200"
+    image.format "jpg"
+
+    data = File.open(image.path) { |f| f.read }
+    unless data.size > 0
+      raise "Invalid resulting jpegPhoto"
+    end
+    set_attribute('jpegPhoto', data)
+  end
   
   def nickname
     self.cn.class == String ? self.cn : self.cn[1]
