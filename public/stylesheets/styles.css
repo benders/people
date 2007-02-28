@@ -65,5 +65,11 @@ ul.layout { list-style-type: none }
 
 .pagetitle { 
 	text-align: center;
+	float: left;
 	font-size: xx-large;
 	}
+
+.searchbox {
+    float: right;
+    white-space: no-wrap;
+    }

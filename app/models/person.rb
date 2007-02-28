@@ -1,5 +1,6 @@
 require 'vpim/vcard'
 require 'ldap-patches'
+require 'mini_magick'
 
 class Person < ActiveLdap::Base
   include ::ActiveLdapPatch

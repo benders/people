@@ -10,7 +10,15 @@ class PersonController < ApplicationController
   end
   
   def index
-    people = Group.find('Slackworks People').member.collect do |dn| 
+    visible = Group.find('Slackworks People').member
+    
+    if params[:search]
+      query = "(|(cn=*#{params[:search]}*)(uid=*#{params[:search]}*))"
+      dn_list = Person.search(:filter => query).collect { |p| p[0] } & visible
+    end
+    
+    dn_list ||= visible
+    people = dn_list.collect do |dn| 
       # Return the uid component of the DN only
       /^uid=([^,]+),#{Group.base}$/.match(dn)[1]
     end

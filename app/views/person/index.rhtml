@@ -1,5 +1,10 @@
 <!-- We jump in part way in a template. This should probably be fixed.  -xac -->
     <div class="pagetitle">Slackworks People</div>
+    <div class="searchbox">
+		<form action="<% url_for(:action => 'index') %>" method="get">
+			<label for="search">Search:</label> <input type="text" name="search"/>
+		</form>
+	</div>
   </div>
   <div class="clear"></div>
 </div>
