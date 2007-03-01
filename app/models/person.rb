@@ -16,6 +16,8 @@ class Person < ActiveLdap::Base
              :many => "member",
              :foreign_key => "dn"
   
+  before_save :reformat_photo
+  
   def Person.admin?(uid)
     Group.find('Administrators').member.include?("#{Person.dn_attribute}=#{uid},#{Person.base}")
   end
@@ -45,8 +47,11 @@ class Person < ActiveLdap::Base
     else
       raise "Unsupported jpegPhoto class #{photo.class.to_s}"
     end
+    set_attribute('jpegPhoto', data)
+  end
   
-    image = MiniMagick::Image.from_blob(data)
+  def reformat_photo
+    image = MiniMagick::Image.from_blob(self.jpegPhoto)
     unless image.is_a?(MiniMagick::Image)
       raise "Could not recognize image"
     end
@@ -57,7 +62,7 @@ class Person < ActiveLdap::Base
     unless data.size > 0
       raise "Invalid resulting jpegPhoto"
     end
-    set_attribute('jpegPhoto', data)
+    self.jpegPhoto = data
   end
   
   def nickname
